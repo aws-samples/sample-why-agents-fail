@@ -1,0 +1,6 @@
+strands-agents[openai]
+neo4j
+neo4j-graphrag[openai]
+faiss-cpu
+sentence-transformers
+python-dotenv

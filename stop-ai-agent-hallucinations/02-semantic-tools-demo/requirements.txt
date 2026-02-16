@@ -1,0 +1,8 @@
+strands-agents
+strands-agents[openai]
+strands-agents-tools
+sentence-transformers
+faiss-cpu
+neo4j
+jupyter
+ipykernel
