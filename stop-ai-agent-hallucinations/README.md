@@ -12,29 +12,16 @@
 
 | 📓 Demo | 🎯 Focus & Key Learning | ⏱️ Time | 📊 Level |
 |---------|------------------------|----------|----------|
-| **01 - [Graph-RAG vs Traditional RAG](01b-faq-graphrag-demo/)** | Structured data retrieval - Compare RAG vs Graph-RAG on 300 hotel FAQs, Neo4j knowledge graph with auto entity extraction, eliminate hallucinations | 30 min | ![Beginner](https://img.shields.io/badge/-Beginner-brightgreen) |
+| **01 - [Graph-RAG vs Traditional RAG](01-faq-graphrag-demo/)** | Structured data retrieval - Compare RAG vs Graph-RAG on 300 hotel FAQs, Neo4j knowledge graph with auto entity extraction, eliminate hallucinations | 30 min | ![Beginner](https://img.shields.io/badge/-Beginner-brightgreen) |
 | **02 - [Semantic Tool Selection with FAISS](02-semantic-tools-demo/)** | Intelligent tool filtering - Filter 31 tools to top 3 relevant, reduce errors by 75% and token costs by 89%, dynamic tool swapping | 45 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
 | **03 - [Multi-Agent Validation Pattern](03-multiagent-demo/)** | Cross-validation workflows - Executor → Validator → Critic pattern catches hallucinations, Strands Swarm orchestration | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
 | **04 - [Neurosymbolic Rule Enforcement](04-neurosymbolic-demo/)** | Symbolic validation - Compare prompt engineering vs symbolic rules, 100% business rule compliance, LLM cannot bypass | 20 min | ![Advanced](https://img.shields.io/badge/-Advanced-red) |
 
 ---
 
-## ⏱️ Agent Timeout & Performance Demos
-
-| 📓 Demo | 🎯 Research Validated | ⏱️ Time | 📊 Results |
-|---------|----------------------|----------|-----------|
-| **[01 - Context Window Overflow](agents-times-out/01-context-overflow-demo/)** | IBM Research: "Solving Context Window Overflow" | 30 min | **7x token reduction** via Memory Pointer Pattern |
-| **[02 - MCP Tools Timeout](agents-times-out/02-mcp-timeout-demo/)** | Octopus: "Resilient AI Agents With MCP" | 20 min | **424 errors validated**, async pattern solution |
-| **[03 - Reasoning Loops](agents-times-out/03-reasoning-loops-demo/)** | The Decoder: "Language models can overthink" | 25 min | **3 duplicate calls blocked** via Debounce Hook |
-
-**[→ See all timeout demos](agents-times-out/)**
-
----
-
 ## 🔧 Technologies Used
 
 <details>
-<summary><b>Learn AWS and Open Source AI Technologies</b></summary>
 
 | 🔧 Technology | 🎯 Purpose | ⚡ Key Capabilities |
 |---------------|------------|---------------------|
@@ -48,17 +35,6 @@
 
 ---
 
-## 📊 Key Results
-
-| 🎯 Technique | 📈 Improvement | 🔍 Metric |
-|--------------|----------------|-----------|
-| **Graph-RAG** | 100% accuracy | Precise queries on 300 hotel FAQs via knowledge graph (demo results) |
-| **Semantic Tool Selection** | Up to 86.4% detection | Tool selection hallucination detection (research paper) |
-| **Semantic Tool Selection** | 89% token reduction | Token cost per query: 4,500 → 500 tokens (demo results) |
-| **Neurosymbolic Rules** | 100% compliance | Business rule enforcement - LLM cannot bypass (demo results) |
-| **Multi-Agent Validation** | Detects hallucinations | Invalid operation detection before reaching users (demo results) |
-
----
 
 ## 🎯 Prerequisites
 
@@ -82,20 +58,15 @@ Follow the [AWS credentials configuration guide](https://docs.aws.amazon.com/cli
 ### 1. **Clone Repository**
 ```bash
 git clone https://github.com/your-org/DevEx-Agent-Hallucinations.git
-cd 01b-faq-graphrag-demo
+cd 01-faq-graphrag-demo
 ```
 
 ### 2. **Choose a Demo** (Start with Graph-RAG)
 ```bash
-cd 01b-faq-graphrag-demo
-
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # macOS/Linux
-# .venv\Scripts\activate   # Windows
+cd 01-faq-graphrag-demo
 
 # Install dependencies
-pip install -r requirements.txt
+uv venv && uv pip install -r requirements.txt
 
 # Extract data
 unzip hotel-faqs.zip -d data/
@@ -104,11 +75,11 @@ unzip hotel-faqs.zip -d data/
 ### 3. **Run Demo**
 ```bash
 # Build data stores first
-python load_vector_data.py  # FAISS index
-python build_graph.py       # Neo4j knowledge graph
+uv run load_vector_data.py  # FAISS index
+uv run build_graph.py       # Neo4j knowledge graph
 
 # Run comparison
-python travel_agent_demo.py
+uv run travel_agent_demo.py
 ```
 
 ### 4. **Explore Other Techniques**
@@ -122,7 +93,7 @@ cd ../04-neurosymbolic-demo   # Neurosymbolic rules
 
 ## 📝 Key Findings
 
-1. **Graph-RAG eliminates statistical hallucinations** - Structured knowledge graph provides precise answers instead of LLM inference (100% accuracy on demo queries)
+1. **Graph-RAG eliminates statistical hallucinations** - Structured knowledge graph provides precise answers instead of LLM inference 
 2. **Semantic tool selection detects hallucinations up to 86.4%** - Research shows filtering tools before agent sees them significantly reduces errors ([Internal Representations paper](https://arxiv.org/abs/2601.05214))
 3. **Token costs reduced by 89%** - Filtering 31 tools to top 3 reduces tokens from 4,500 to 500 per query (demo results)
 4. **Neurosymbolic rules enforce 100% compliance** - Symbolic validation at tool level cannot be bypassed by prompt engineering (demo results)
@@ -151,7 +122,7 @@ Based on recent papers:
 
 <div align="center">
 
-**⭐ Star this repository** • **📖 [Start Learning](01b-faq-graphrag-demo/)**
+**⭐ Star this repository** • **📖 [Start Learning](01-faq-graphrag-demo/)**
 
 </div>
 
@@ -165,7 +136,7 @@ Based on recent papers:
 
 **Model alternatives**: All demos work with OpenAI, Anthropic, or Ollama - see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/)
 
-**Neo4j setup**: Graph-RAG demo requires Neo4j database. See [01b-faq-graphrag-demo/README.md](01b-faq-graphrag-demo/README.md) for setup instructions
+**Neo4j setup**: Graph-RAG demo requires Neo4j database. See [01-faq-graphrag-demo/README.md](01-faq-graphrag-demo/README.md) for setup instructions
 
 ---
 

@@ -48,8 +48,14 @@ class NeurosymbolicHook(HookProvider):
                     "guests": params.get("guests", 1),
                     "days_until_checkin": (ci - datetime.now()).days
                 }
-            except:
-                return {}
+            except (ValueError, KeyError):
+                # Return context that fails validation
+                return {
+                    "check_in": None,
+                    "check_out": None,
+                    "guests": 999,
+                    "days_until_checkin": -999
+                }
         elif tool_name == "confirm_booking":
             return {"payment_verified": params["booking_id"] in self.state["payments"]}
         elif tool_name == "cancel_booking":

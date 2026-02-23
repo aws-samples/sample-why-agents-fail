@@ -64,7 +64,6 @@ AI agents fail in three predictable ways. This repository demonstrates research-
 ## 🔧 Technologies Used
 
 <details>
-<summary><b>Learn AWS and Open Source AI Technologies</b></summary>
 
 | 🔧 Technology | 🎯 Purpose | ⚡ Key Capabilities |
 |---------------|------------|---------------------|
@@ -105,21 +104,7 @@ cd why-agents-fail
 
 ### 2. **Start with Hallucinations**
 ```bash
-cd stop-ai-agent-hallucinations/01-faq-graphrag-demo
-
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # macOS/Linux
-# .venv\Scripts\activate   # Windows
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Extract data and run demo
-unzip hotel-faqs.zip -d data/
-python load_vector_data.py
-python build_graph.py
-python travel_agent_demo.py
+cd stop-ai-agent-hallucinations
 ```
 
 ### 3. **Explore All Techniques**
@@ -161,7 +146,6 @@ This repository implements techniques from recent research papers:
 - [Strands Agents Documentation](https://strandsagents.com) - Framework documentation and model providers
 - [AWS Bedrock Documentation](https://docs.aws.amazon.com/bedrock/) - LLM service guide and model access
 - [Neo4j Graph Database Guide](https://neo4j.com/docs/) - Graph database setup and Cypher queries
-- [LangChain Documentation](https://python.langchain.com/) - Alternative agent framework
 
 ---
 
@@ -171,19 +155,6 @@ This repository implements techniques from recent research papers:
 
 </div>
 
----
-
-## 🔍 Troubleshooting
-
-**OpenTelemetry warnings**: Ignore "Failed to detach context" warnings - they don't affect functionality
-
-**AWS credentials**: Ensure credentials are configured with Bedrock access and appropriate permissions
-
-**Model alternatives**: All demos work with OpenAI, Anthropic, or Ollama - see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/)
-
-**Neo4j setup**: Graph-RAG demo requires Neo4j database. See [01-faq-graphrag-demo/README.md](stop-ai-agent-hallucinations/01-faq-graphrag-demo/README.md) for setup instructions
-
-**Python version**: Requires Python 3.9 or higher. Check with `python --version`
 
 ---
 

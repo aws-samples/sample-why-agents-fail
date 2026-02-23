@@ -3,15 +3,12 @@
 Multi-Agent Hallucination Detection Test
 Based on: https://arxiv.org/pdf/2510.19507 (Teaming LLMs to Detect and Mitigate Hallucinations)
 """
-import sys
 import os
 import warnings
 
 # Suppress OpenTelemetry warnings
 warnings.filterwarnings('ignore', message='Failed to detach context')
 os.environ['OTEL_SDK_DISABLED'] = 'true'
-
-sys.path.insert(0, '../semantic-tools-demo')
 
 from strands import Agent
 from strands.models.openai import OpenAIModel

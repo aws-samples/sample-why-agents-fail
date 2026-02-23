@@ -1,39 +1,33 @@
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual environments
+*.pyo
 .venv/
 venv/
-ENV/
 env/
+test_env/
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# Data
+*.csv
+faiss-db/
+data/
+*.index
+vector_store/
+graph-db/
 
-# IDEs
-.vscode/
+# Jupyter
+.ipynb_checkpoints/
+*_executed.ipynb
+
+# IDE
 .idea/
+.vscode/
+.kiro/
 *.swp
 *.swo
 *~
@@ -42,17 +36,21 @@ env/
 .DS_Store
 Thumbs.db
 
-# Jupyter
-.ipynb_checkpoints/
-
-# Data files
-*.zip
-data/
-*.db
-*.sqlite
+# Credentials
+.env
+.env.*
 
 # Neo4j
-.neo4j/
+neo4j/
+plugins/
 
 # Logs
 *.log
+
+hotel-faqs-extracted/
+*.pkl
+
+agents-times-out/
+
+test-play/
+05-meta-tooling-demo/

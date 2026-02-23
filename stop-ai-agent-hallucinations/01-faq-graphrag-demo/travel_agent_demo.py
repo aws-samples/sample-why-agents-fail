@@ -41,6 +41,11 @@ def search_faqs(query: str) -> str:
 def query_knowledge_graph(cypher_query: str) -> str:
     """Execute a Cypher query against the hotel knowledge graph.
     
+    Cypher is Neo4j's query language for graph databases. It uses pattern matching
+    to query relationships between entities. Think of it like SQL for graphs.
+    
+    Example: MATCH (h:Hotel)-[:HAS_ROOM]->(r:Room) WHERE h.name = 'Marriott' RETURN r.price
+    
     Node labels: Hotel, Room, Amenity, Policy, Service
     
     Hotel properties: name, address, guestRating, totalRooms, email, phone

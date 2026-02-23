@@ -42,20 +42,14 @@ You can swap the model for any provider supported by Strands — Amazon Bedrock,
 
 ### Setup
 ```bash
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # macOS/Linux
-# .venv\Scripts\activate   # Windows
-
-# Install dependencies
-pip install -r requirements.txt
+uv venv && uv pip install -r requirements.txt
 ```
 
 ### Run Tests
 
 **Option 1: Python Script (Recommended)**
 ```bash
-python test_multiagent_hallucinations.py
+uv run test_multiagent_hallucinations.py
 ```
 
 **Option 2: Jupyter Notebook**

@@ -1,6 +1,9 @@
 """Token Comparison App - Measures token savings in semantic tool discovery"""
 import sys
 import io
+from dotenv import load_dotenv
+load_dotenv()
+
 from strands import Agent
 from strands.models.openai import OpenAIModel
 from enhanced_tools import ALL_TOOLS

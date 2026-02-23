@@ -1,6 +1,6 @@
 # Semantic Tool Selection: Reducing Agent Hallucinations
 
-![Diagram showing 30 tools filtered to 3 relevant tools with performance metrics](../blog-series/blog-images/semantic-tool-selection-filtering.png)
+![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](../blog-series/blog-images/semantic-tool-selection-filtering.png)
 
 **AI agents with many similar tools pick the wrong one and waste tokens. This demo builds a travel agent with Strands Agents and uses FAISS to filter 31 tools down to the top 3 most relevant, comparing filtered vs unfiltered tool selection accuracy.**
 
@@ -28,7 +28,7 @@ Semantic tool selection filters tools **before** the agent sees them:
 User Query → FAISS Search → Top 3 Tools → Agent → Correct Selection
 ```
 
-**Results**: 75% fewer errors, 89% fewer tokens
+**Results**: Improved accuracy, fewer tokens
 
 ### Why Strands Agents Makes This Production-Ready
 
@@ -60,7 +60,7 @@ Learn more: [Strands Tool Registry](https://strandsagents.com/latest/documentati
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.9+
 - [Strands Agents](https://strandsagents.com) — AI agent framework
 - Optional: Neo4j connection for real hotel data (from `../01-hotel-rag-demo`)
 
@@ -70,10 +70,21 @@ This demo uses OpenAI with GPT-4o-mini by default (requires `OPENAI_API_KEY` env
 
 You can swap the model for any provider supported by Strands — Amazon Bedrock, Anthropic, Ollama, etc. See [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) for configuration.
 
+### Configure Environment Variables
+
+Create a `.env` file with your OpenAI API key:
+
+```bash
+# OpenAI API Key (required)
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+**How to get your API key**: Get from [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+
 ### Install
 
 ```bash
-pip install -r requirements.txt
+uv venv && uv pip install -r requirements.txt
 ```
 
 ## Files
@@ -82,9 +93,8 @@ pip install -r requirements.txt
 |------|---------|
 | `test_semantic_tools_hallucinations.ipynb` | **Main demo** - Comprehensive notebook with 31 tools, ground truth verification |
 | `token_comparison_app.py` | **Token savings verification** - Standalone script to measure token reduction |
-| `enhanced_tools.py` | 31 travel agent tools (25 generic + 6 with real Neo4j data) |
+| `enhanced_tools.py` | 31 travel agent tools (29 generic + 2 with optional Neo4j data) |
 | `registry.py` | FAISS-based semantic tool filtering |
-| `agentic-semantic-tools.py` | Helper script for tool loading |
 
 ## Run the Demo
 
@@ -109,7 +119,7 @@ jupyter notebook test_semantic_tools_hallucinations.ipynb
 Run the standalone token comparison script to verify the savings claimed in Part 3 of the notebook:
 
 ```bash
-python token_comparison_app.py
+uv run token_comparison_app.py
 ```
 
 **What it measures**:
@@ -212,8 +222,8 @@ Learn more: [Strands Agent Architecture](https://strandsagents.com/latest/docume
 ## Results
 
 **Notebook Results** (31 tools, 13 queries):
-- **Traditional**: 6/8 correct (75% accuracy)
-- **Semantic**: 8/8 correct (100% accuracy)
+- **Traditional**: 12/13 correct (92.3% accuracy)
+- **Semantic**: 13/13 correct (100% accuracy)
 - **Token reduction**: 89% (31 tools → 3 tools per query)
 - **Speed improvement**: 62% faster responses
 

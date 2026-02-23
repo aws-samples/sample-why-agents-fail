@@ -62,17 +62,26 @@ Two agents query the same data with different approaches:
 ### 1. Install Dependencies
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+uv venv && uv pip install -r requirements.txt
 ```
 
-### 2. Configure
+### 2. Configure Environment Variables
+
+Create a `.env` file with your credentials:
 
 ```bash
-cp .env.example .env
-# Edit .env with your OPENAI_API_KEY and NEO4J_PASSWORD
+# OpenAI API Key (required)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Neo4j Configuration (required for Graph-RAG demo)
+NEO4J_URI=neo4j://127.0.0.1:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_neo4j_password_here
 ```
+
+**How to get credentials:**
+- **OpenAI API Key**: Get from [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- **Neo4j Password**: The password you set when creating your database in Neo4j Desktop or during Neo4j installation
 
 ### 3. Extract Data
 
@@ -82,32 +91,60 @@ unzip hotel-faqs.zip -d data/
 
 ### 4. Build Data Stores
 
+**Option A: LITE Version (Recommended for Testing - ~10-15 minutes)**
+
+Process only 30 documents (10% of dataset) for quick testing:
+
+```bash
+# Build FAISS vector index (fast, ~30 seconds)
+uv run load_vector_data_lite.py
+
+# Build Neo4j knowledge graph (~10-15 minutes)
+uv run build_graph_lite.py
+```
+
+**Option B: Full Version (~2 hours)**
+
+Process all 300 documents for complete dataset:
+
 ```bash
 # Build FAISS vector index (fast, ~1 min)
-python load_vector_data.py
+uv run load_vector_data.py
 
-# Build Neo4j knowledge graph (slower, uses LLM for entity extraction)
-python build_graph.py
+# Build Neo4j knowledge graph (slower, ~2 hours - uses LLM for entity extraction)
+uv run build_graph.py
 ```
 
 ### 5. Run Demo
 
 ```bash
-python travel_agent_demo.py
+uv run travel_agent_demo.py
 ```
 
-## 📁 Files
 
-| File | Purpose |
-|------|---------|
-| `build_graph.py` | Builds knowledge graph using `neo4j-graphrag` — LLM auto-discovers entities and relationships |
-| `load_vector_data.py` | Builds FAISS vector index from FAQ documents |
-| `travel_agent_demo.py` | Runs comparison: Traditional RAG vs Graph-RAG |
-| `test_graphrag.ipynb` | Interactive Jupyter notebook with all 4 tests |
-| `data/` | 300 hotel FAQ documents (extract from `hotel-faqs.zip`) |
-| `requirements.txt` | Dependencies |
+## 🔧 How It Works
 
-## 🔧 How the Knowledge Graph is Built
+### Two Agents, Same Data
+
+The demo creates **two agents** that query the same 300 hotel FAQs:
+
+```python
+# Traditional RAG Agent - uses vector search
+rag_agent = Agent(
+    name="RAG_Agent",
+    tools=[search_faqs],  # FAISS similarity search
+    model=OpenAIModel("gpt-4o-mini")
+)
+
+# Graph-RAG Agent - uses knowledge graph
+graph_agent = Agent(
+    name="GraphRAG_Agent", 
+    tools=[query_knowledge_graph],  # Cypher queries on Neo4j
+    model=OpenAIModel("gpt-4o-mini")
+)
+```
+
+### How the Knowledge Graph is Built
 
 The graph is built **automatically** using `neo4j-graphrag` — no hardcoded schema:
 

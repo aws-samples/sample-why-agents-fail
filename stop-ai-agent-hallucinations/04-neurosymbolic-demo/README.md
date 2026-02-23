@@ -42,8 +42,8 @@ You can swap the model for any provider supported by Strands — Amazon Bedrock,
 ### Setup
 
 ```bash
-pip install -r requirements.txt
-python test_neurosymbolic_hooks.py
+uv venv && uv pip install -r requirements.txt
+uv run test_neurosymbolic_hooks.py
 ```
 
 ## How It Works with Strands Agents

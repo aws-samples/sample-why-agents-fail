@@ -3,16 +3,20 @@ Enhanced Travel Agent Tools
 Combines mock tools with real hotel database access
 """
 import os
-import sys
-sys.path.append('../01-hotel-rag-demo/tools')
-
 from strands import tool
-from graph_tool import search_hotels_by_country, get_top_rated_hotels
 
-# Configure Neo4j
-os.environ['NEO4J_URI'] = os.getenv('NEO4J_URI', 'neo4j://127.0.0.1:7687')
-os.environ['NEO4J_USER'] = os.getenv('NEO4J_USER', 'neo4j')
-os.environ['NEO4J_PASSWORD'] = os.getenv('NEO4J_PASSWORD', 'Eli12345678')
+# Try to import Neo4j tools (optional)
+try:
+    import sys
+    sys.path.append('../01-hotel-rag-demo/tools')
+    from graph_tool import search_hotels_by_country, get_top_rated_hotels
+    NEO4J_AVAILABLE = True
+    # Configure Neo4j
+    os.environ['NEO4J_URI'] = os.getenv('NEO4J_URI', 'neo4j://127.0.0.1:7687')
+    os.environ['NEO4J_USER'] = os.getenv('NEO4J_USER', 'neo4j')
+    os.environ['NEO4J_PASSWORD'] = os.getenv('NEO4J_PASSWORD', 'password')
+except ImportError:
+    NEO4J_AVAILABLE = False
 
 # ============================================================================
 # HOTEL TOOLS (Real Database + Mock)
@@ -21,6 +25,8 @@ os.environ['NEO4J_PASSWORD'] = os.getenv('NEO4J_PASSWORD', 'Eli12345678')
 @tool
 def search_real_hotels(country: str, min_rating: float = 0.0) -> str:
     """Search real hotels in a specific country from our database."""
+    if not NEO4J_AVAILABLE:
+        return f"Mock: Hotels in {country} with rating >= {min_rating}"
     try:
         results = search_hotels_by_country(country, min_rating)
         return results
@@ -30,6 +36,8 @@ def search_real_hotels(country: str, min_rating: float = 0.0) -> str:
 @tool
 def get_top_hotels(limit: int = 5) -> str:
     """Get the top-rated hotels from our database."""
+    if not NEO4J_AVAILABLE:
+        return f"Mock: Top {limit} hotels"
     try:
         results = get_top_rated_hotels(limit)
         return results
@@ -38,32 +46,32 @@ def get_top_hotels(limit: int = 5) -> str:
 
 @tool
 def search_hotels(query: str) -> str:
-    """Search hotels by location or name."""
+    """Search for hotels by location name or city. Returns a list of available hotels matching the search criteria."""
     return f"Hotels found for: {query}"
 
 @tool
 def search_hotel_reviews(hotel: str) -> str:
-    """Search reviews for a hotel."""
+    """Search and read customer reviews and ratings for a specific hotel. Useful for checking hotel quality and guest experiences."""
     return f"Reviews for {hotel}: 4.5 stars"
 
 @tool
 def get_hotel_details(hotel: str) -> str:
-    """Get hotel details like amenities and price."""
+    """Get comprehensive hotel information including amenities, facilities, services, and room types. Does not include pricing."""
     return f"{hotel}: Pool, Spa, $200/night"
 
 @tool
 def get_hotel_pricing(hotel: str) -> str:
-    """Get room pricing for a hotel."""
+    """Get current room rates and pricing information for a specific hotel. Returns price ranges for different room types."""
     return f"{hotel}: $200-400/night"
 
 @tool
 def check_hotel_availability(hotel: str, date: str) -> str:
-    """Check if hotel has rooms on a date."""
+    """Check if a hotel has available rooms on a specific single date. For date ranges, use check_hotel_availability_dates instead."""
     return f"{hotel} available on {date}"
 
 @tool
 def book_hotel(hotel: str, guest: str) -> str:
-    """Book a hotel room."""
+    """Make a hotel reservation and book a room for a guest. Completes the booking process."""
     return f"BOOKED {hotel} for {guest}"
 
 @tool
@@ -112,32 +120,32 @@ def compare_hotel_prices(city: str, check_in: str, check_out: str) -> str:
 
 @tool
 def search_flights(origin: str, dest: str) -> str:
-    """Search flights between cities."""
+    """Search for available flights between two cities. Returns flight options with times and airlines."""
     return f"Flights {origin}-{dest}: $300-500"
 
 @tool
 def search_flight_prices(origin: str, dest: str) -> str:
-    """Get flight prices between cities."""
+    """Get price comparison for flights between two cities. Shows price ranges across different airlines and times."""
     return f"Prices {origin}-{dest}: $300-500"
 
 @tool
 def get_flight_details(flight: str) -> str:
-    """Get details of a specific flight."""
+    """Get detailed information about a specific flight including aircraft type, duration, and route."""
     return f"Flight {flight}: Boeing 737, 3h"
 
 @tool
 def get_flight_status(flight: str) -> str:
-    """Get real-time flight status."""
+    """Check real-time flight status including delays, gate information, and departure/arrival times."""
     return f"Flight {flight}: On time, Gate B4"
 
 @tool
 def check_flight_availability(flight: str) -> str:
-    """Check seats available on a flight."""
+    """Check how many seats are available on a specific flight. Useful for group bookings."""
     return f"Flight {flight}: 23 seats left"
 
 @tool
 def book_flight(flight: str, passenger: str) -> str:
-    """Book a flight."""
+    """Make a flight reservation and book a seat for a passenger. Completes the booking process."""
     return f"BOOKED {flight} for {passenger}"
 
 # ============================================================================
@@ -211,47 +219,51 @@ def get_travel_documents(destination_country: str, origin_country: str) -> str:
 
 @tool
 def search(query: str) -> str:
-    """Generic search."""
+    """Perform a generic search across all travel services. Use this only when the search type is unclear or spans multiple categories."""
     return f"Results for: {query}"
 
 @tool
 def check(item: str) -> str:
-    """Generic check."""
+    """Perform a generic check on any item. Use this only when the specific check type is unclear."""
     return f"Checked: {item}"
 
 @tool
 def get_details(item: str) -> str:
-    """Get details of anything."""
+    """Get general details about any travel item. Use this only when you need generic information that doesn't fit specific categories."""
     return f"Details: {item}"
 
 @tool
 def get_status(item: str) -> str:
-    """Get status of anything."""
+    """Check the general status of any travel item. Use this only when the specific status type is unclear."""
     return f"Status: {item} OK"
 
 @tool
 def get_info(item: str) -> str:
-    """Get info about anything."""
+    """Get general information about any travel item. Use this only when you need generic info that doesn't fit specific categories."""
     return f"Info: {item}"
 
 @tool
 def book(item: str, name: str) -> str:
-    """Book anything."""
+    """Make a generic booking for any travel service. Use this only when the booking type is unclear or spans multiple services."""
     return f"BOOKED {item} for {name}"
 
 @tool
 def cancel(item: str) -> str:
-    """Cancel anything."""
+    """Cancel any travel booking or reservation. Use this for general cancellations when the specific type is unclear."""
     return f"CANCELLED {item}"
 
 # ============================================================================
 # ALL TOOLS COLLECTION
 # ============================================================================
 
-ALL_TOOLS = [
-    # Real database tools
-    search_real_hotels, get_top_hotels,
-    
+ALL_TOOLS = []
+
+# Add real database tools if Neo4j is available
+if NEO4J_AVAILABLE:
+    ALL_TOOLS.extend([search_real_hotels, get_top_hotels])
+
+# Add all other tools
+ALL_TOOLS.extend([
     # Hotel tools (mock)
     search_hotels, search_hotel_reviews, get_hotel_details, get_hotel_pricing, 
     check_hotel_availability, book_hotel, check_hotel_availability_dates, compare_hotel_prices,
@@ -271,4 +283,4 @@ ALL_TOOLS = [
     
     # Generic/ambiguous tools
     search, check, get_details, get_status, get_info, book, cancel
-]
+])

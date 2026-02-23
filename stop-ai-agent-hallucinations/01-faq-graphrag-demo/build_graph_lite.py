@@ -1,9 +1,8 @@
 """
-Build knowledge graph from hotel FAQ documents using neo4j-graphrag.
+Build LITE knowledge graph from hotel FAQ documents using neo4j-graphrag.
 
-Uses LLM to AUTOMATICALLY extract entities and relationships.
-No hardcoded schema - the LLM discovers entities from the text.
-Same 300 documents as the FAISS vector store.
+LITE VERSION: Processes only 30 documents (10% of full dataset) for faster testing.
+Full version takes ~2 hours, lite version takes ~10-15 minutes.
 """
 import os
 import asyncio
@@ -20,6 +19,9 @@ from neo4j_graphrag.embeddings import OpenAIEmbeddings
 NEO4J_URI = os.getenv("NEO4J_URI", "neo4j://127.0.0.1:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
+
+# LITE: Process only first 30 documents
+MAX_DOCS = 30
 
 
 async def build_graph():
@@ -38,8 +40,8 @@ async def build_graph():
     )
     embedder = OpenAIEmbeddings(model="text-embedding-3-small")
 
-    # No hardcoded schema - LLM discovers entities automatically
-    # schema="EXTRACTED" (default): LLM analyzes text, generates schema, then extracts
+    # No hardcoded schema - the LLM automatically discovers entities from the text,
+    # eliminating the need to manually define entity types in advance
     kg_builder = SimpleKGPipeline(
         llm=llm,
         driver=GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD)),
@@ -48,32 +50,29 @@ async def build_graph():
         perform_entity_resolution=True,
     )
 
-    # Load all 300 FAQ documents (same as FAISS)
+    # Load LITE subset of FAQ documents
     data_dir = "data"
-    files = sorted(os.listdir(data_dir))
+    files = sorted(os.listdir(data_dir))[:MAX_DOCS]  # Only first 30
     total = len(files)
-    print(f"Processing {total} documents...\n")
+    print(f"🚀 LITE MODE: Processing {total} documents (10% of full dataset)...\n")
 
     errors = 0
     for i, filename in enumerate(files, 1):
         filepath = os.path.join(data_dir, filename)
         with open(filepath, 'r', encoding='utf-8') as f:
             text = f.read()
-
-        print(f"  [{i}/{total}] {filename}...", end=" ", flush=True)
+        
         try:
-            await asyncio.wait_for(kg_builder.run_async(text=text), timeout=90)
-            print("✅")
-        except asyncio.TimeoutError:
-            errors += 1
-            print("⏰ timeout")
+            print(f"[{i}/{total}] Processing {filename}...")
+            await kg_builder.run_async(text=text)
         except Exception as e:
+            print(f"  ❌ Error: {e}")
             errors += 1
-            print(f"❌ {str(e)[:60]}")
+    
+    await kg_builder.close()
 
-    # Summary
     print(f"\n{'='*60}")
-    print(f"GRAPH BUILD COMPLETE ({total - errors}/{total} docs processed)")
+    print(f"LITE GRAPH BUILD COMPLETE ({total - errors}/{total} docs processed)")
     print(f"{'='*60}")
 
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
@@ -103,27 +102,16 @@ async def build_graph():
         result = session.run("""
             MATCH (h)-[*1..3]->(co)
             WHERE any(l IN labels(h) WHERE l CONTAINS 'Hotel' OR l = 'Hotel')
-            AND any(l IN labels(co) WHERE l CONTAINS 'Country' OR l = 'Country')
-            AND co.name CONTAINS 'Egypt'
-            RETURN h.name, co.name
+              AND any(l IN labels(co) WHERE l CONTAINS 'Country' OR l = 'Country')
+              AND co.id =~ '(?i).*egypt.*'
+            RETURN h.id as hotel, co.id as country
             LIMIT 5
         """)
         for r in result:
-            print(f"  {r['h.name']} -> {r['co.name']}")
-
-        print("\n--- Test: Hotels in Paris ---")
-        result = session.run("""
-            MATCH (h)-[*1..2]->(c)
-            WHERE any(l IN labels(h) WHERE l CONTAINS 'Hotel' OR l = 'Hotel')
-            AND c.name CONTAINS 'Paris'
-            RETURN h.name, c.name
-            LIMIT 5
-        """)
-        for r in result:
-            print(f"  {r['h.name']} -> {r['c.name']}")
+            print(f"  {r['hotel']} -> {r['country']}")
 
     driver.close()
-    print("\n✅ Done!")
+    print("\n✅ LITE graph ready for queries!")
 
 
 if __name__ == "__main__":

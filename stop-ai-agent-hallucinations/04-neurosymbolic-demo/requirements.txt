@@ -1,2 +1,2 @@
-strands-agents
-strands-agents[openai]
+strands-agents>=1.27.0
+strands-agents[openai]>=1.27.0

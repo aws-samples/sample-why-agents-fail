@@ -1,8 +1,7 @@
-strands-agents
-strands-agents[openai]
-strands-agents-tools
-sentence-transformers
-faiss-cpu
-neo4j
-jupyter
-ipykernel
+strands-agents[openai]>=1.27.0
+sentence-transformers>=3.4.0
+faiss-cpu>=1.9.0
+neo4j>=5.28.0
+jupyter>=1.1.1
+ipykernel>=6.30.0
+python-dotenv>=1.0.1
