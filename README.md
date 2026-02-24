@@ -10,7 +10,7 @@
 
 ## 🎯 Learning Path: Understand → Prevent → Scale
 
-AI agents fail in three predictable ways. This repository demonstrates research-backed techniques to prevent each failure mode with working code examples.
+This repository demonstrates research-backed techniques for preventing AI agent failures with working code examples.
 
 | 🚨 Failure Mode | 💡 Solution Approach | 📊 Projects | ⏱️ Total Time |
 |----------------|---------------------|-------------|---------------|
