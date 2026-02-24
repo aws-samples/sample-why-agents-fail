@@ -131,7 +131,9 @@ Each demo folder contains detailed README files and working code examples.
 
 - [Strands Agents Documentation](https://strandsagents.com) - Framework documentation and model providers
 - [AWS Bedrock Documentation](https://docs.aws.amazon.com/bedrock?trk=87c4c426-cddf-4799-a299-273337552ad8&sc_channel=el) - LLM service guide and model access
+- [Search for tools in your AgentCore gateway with a natural language query](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-using-mcp-semantic-search.html)
 - [Neo4j Graph Database Guide](https://neo4j.com/docs/) - Graph database setup and Cypher queries
+
 
 
 ---

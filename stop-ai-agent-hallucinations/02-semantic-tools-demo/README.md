@@ -197,7 +197,7 @@ for query in queries:
 
 Learn more: [Strands Agent Architecture](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/agents/)
 
-
+- [Search for tools in your AgentCore gateway with a natural language query](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-using-mcp-semantic-search.html)
 
 ## Enhanced Tools with Real Data
 
