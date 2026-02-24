@@ -30,10 +30,10 @@ AI agents fail in three predictable ways. This repository demonstrates research-
 
 | 📓 Demo | 🎯 Focus & Key Learning | ⏱️ Time | 📊 Level |
 |---------|------------------------|----------|----------|
-| **01 - [Graph-RAG vs Traditional RAG](stop-ai-agent-hallucinations/01-faq-graphrag-demo/)** | Structured data retrieval - Compare RAG vs Graph-RAG on 300 hotel FAQs, Neo4j knowledge graph with auto entity extraction, eliminate statistical hallucinations | 30 min | ![Beginner](https://img.shields.io/badge/-Beginner-brightgreen) |
+| **01 - [Graph-RAG vs Traditional RAG](stop-ai-agent-hallucinations/01-faq-graphrag-demo/)** | Structured data retrieval - Compare RAG vs Graph-RAG on 300 hotel FAQs, Neo4j knowledge graph with auto entity extraction, eliminate statistical hallucinations | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
 | **02 - [Semantic Tool Selection with FAISS](stop-ai-agent-hallucinations/02-semantic-tools-demo/)** | Intelligent tool filtering - Filter 31 tools to top 3 relevant, reduce errors by 75% and token costs by 89%, dynamic tool swapping | 45 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
 | **03 - [Multi-Agent Validation Pattern](stop-ai-agent-hallucinations/03-multiagent-demo/)** | Cross-validation workflows - Executor → Validator → Critic pattern catches hallucinations, Strands Swarm orchestration | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
-| **04 - [Neurosymbolic Rule Enforcement](stop-ai-agent-hallucinations/04-neurosymbolic-demo/)** | Symbolic validation - Compare prompt engineering vs symbolic rules, 100% business rule compliance, LLM cannot bypass | 20 min | ![Advanced](https://img.shields.io/badge/-Advanced-red) |
+| **04 - [Neurosymbolic Rule Enforcement](stop-ai-agent-hallucinations/04-neurosymbolic-demo/)** | Symbolic validation - Compare prompt engineering vs symbolic rules, 100% business rule compliance, LLM cannot bypass | 20 min |![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
 
 ### 📊 Key Results
 
@@ -98,7 +98,7 @@ Follow the [AWS credentials configuration guide](https://docs.aws.amazon.com/cli
 
 ### 1. **Clone Repository**
 ```bash
-git clone https://github.com/build-on-aws/why-agents-fail.git
+git clone https://github.com/aws-samples/sample-why-agents-fail
 cd why-agents-fail
 ```
 
