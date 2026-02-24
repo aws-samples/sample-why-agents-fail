@@ -2,7 +2,7 @@
 
 ![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/semantic-tool-selection-filtering.png)
 
-**AI agents with many similar tools pick the wrong one and waste tokens. This demo builds a travel agent with Strands Agents and uses FAISS to filter 31 tools down to the top 3 most relevant, comparing filtered vs unfiltered tool selection accuracy.**
+**AI agents with many similar tools pick the wrong one and waste tokens. This demo builds a travel agent with Strands Agents and uses FAISS to filter 29 tools down to the top 3 most relevant, comparing filtered vs unfiltered tool selection accuracy.**
 
 Based on research: ["Internal Representations as Indicators of Hallucinations in Agent Tool Selection"](https://arxiv.org/abs/2601.05214)
 
@@ -18,7 +18,7 @@ Research ([Internal Representations, 2025](https://arxiv.org/abs/2601.05214)) id
 
 **The dual problem**:
 - ❌ **Hallucination risk**: More tools = more inappropriate selections
-- ❌ **Token waste**: Sending all tool descriptions on every call (31 tools = ~4,500 tokens per query)
+- ❌ **Token waste**: Sending all tool descriptions on every call (29 tools = ~4,000 tokens per query)
 
 ## The Solution
 
@@ -89,7 +89,7 @@ uv venv && uv pip install -r requirements.txt
 
 | File | Purpose |
 |------|---------|
-| `test_semantic_tools_hallucinations.ipynb` | **Main demo** - Comprehensive notebook with 31 tools, ground truth verification |
+| `test_semantic_tools_hallucinations.ipynb` | **Main demo** - Comprehensive notebook with 29 tools, ground truth verification |
 | `token_comparison_app.py` | **Token savings verification** - Standalone script to measure token reduction |
 | `enhanced_tools.py` | 31 travel agent tools (29 generic + 2 with optional Neo4j data) |
 | `registry.py` | FAISS-based semantic tool filtering |
@@ -133,7 +133,7 @@ uv run token_comparison_app.py
 ![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/semantic-tool-selection-results.png)
 
 **Token breakdown**:
-- **Traditional**: 31 tools × 50 tokens = ~1550 tokens/query (constant)
+- **Traditional**: 29 tools × 50 tokens = ~1450 tokens/query (constant)
 - **Semantic**: 3 tools × 50 tokens = ~150 tokens/query (constant)
 - **Memory**: ~150 tokens + conversation history (~400 tokens/turn, accumulates)
 

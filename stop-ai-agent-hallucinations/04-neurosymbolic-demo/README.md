@@ -1,8 +1,9 @@
-# Part 4: Neurosymbolic Integration - Verifiable Agent Decisions
+# Part 4: Neurosymbolic Guardrails Integration - Verifiable Agent Decisions
+> Combines LLM flexibility with symbolic rules for verifiable, constrained decision-making in AI agents.
+
 
 ![Diagram showing LLM flexibility combined with symbolic rule enforcement](images/neurosymbolic.png)
 
-Combines LLM flexibility with symbolic rules for verifiable, constrained decision-making in AI agents.
 
 ## The Problem
 
@@ -14,7 +15,7 @@ Research ([ATA: Autonomous Trustworthy Agents, 2024](https://arxiv.org/html/2510
 
 **Why prompt engineering fails**: Prompts are suggestions, not constraints. Agents can ignore docstring instructions because they're processed as text, not executable rules.
 
-## The Solution: Neurosymbolic Agents with Strands Hooks
+## The Solution: Neurosymbolic Guardrails for AI Agents with Strands Agents Hooks
 
 Neurosymbolic integration combines:
 - **Neural (LLM)**: Understands natural language, interprets intent, selects tools

@@ -35,7 +35,7 @@ This repository demonstrates research-backed techniques for preventing AI agent 
 | **01 - [Graph-RAG vs Traditional RAG](stop-ai-agent-hallucinations/01-faq-graphrag-demo/)** | Structured data retrieval - Compare RAG vs Graph-RAG on 300 hotel FAQs, Neo4j knowledge graph with auto entity extraction, eliminate statistical hallucinations | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
 | **02 - [Semantic Tool Selection](stop-ai-agent-hallucinations/02-semantic-tools-demo/)** | Intelligent tool filtering - Filter 31 tools to top 3 relevant, reduce errors and token costs, dynamic tool swapping | 45 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
 | **03 - [Multi-Agent Validation Pattern](stop-ai-agent-hallucinations/03-multiagent-demo/)** | Cross-validation workflows - Executor → Validator → Critic pattern catches hallucinations, Strands Swarm orchestration | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
-| **04 - [Neurosymbolic Rule Enforcement](stop-ai-agent-hallucinations/04-neurosymbolic-demo/)** | Symbolic validation - Compare prompt engineering vs symbolic rules, business rule compliance, LLM cannot bypass | 20 min |![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
+| **04 - [Neurosymbolic Guardrails for AI Agents](stop-ai-agent-hallucinations/04-neurosymbolic-demo/)** | Symbolic validation - Compare prompt engineering vs symbolic rules, business rule compliance, LLM cannot bypass | 20 min |![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
 
 ### 📊 Key Results
 
