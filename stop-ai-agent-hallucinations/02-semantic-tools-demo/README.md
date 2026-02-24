@@ -101,8 +101,8 @@ uv venv && uv pip install -r requirements.txt
 ```
 
 **What it does**:
-1. Tests 13 travel queries on 31 tools
-2. Compares Traditional (all 31 tools) vs Semantic (top 3 filtered)
+1. Tests 13 travel queries on 29 tools
+2. Compares Traditional (all 29 tools) vs Semantic (top 3 filtered)
 3. Verifies against ground truth (real hotel database)
 4. Shows token savings and error reduction
 
@@ -197,13 +197,7 @@ for query in queries:
 
 Learn more: [Strands Agent Architecture](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/agents/)
 
-## Results
 
-**Notebook Results** (31 tools, 13 queries):
-- **Traditional**: 12/13 correct (92.3% accuracy)
-- **Semantic**: 13/13 correct (100% accuracy)
-- **Token reduction**: 89% (31 tools → 3 tools per query)
-- **Speed improvement**: 62% faster responses
 
 ## Enhanced Tools with Real Data
 

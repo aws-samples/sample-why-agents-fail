@@ -185,9 +185,7 @@ If you add new documents with new entity types (Restaurant, Airport, etc.), the 
 | [FAISS](https://github.com/facebookresearch/faiss) | Vector similarity search |
 | [SentenceTransformers](https://www.sbert.net/) | Text embeddings (runs locally, no API costs — swap for any embedding provider) |
 
-## 📖 Blog Post
 
-See the full blog post: [RAG vs Graph-RAG: When Agents Hallucinate Answers](../blog-series/blog-1-graph-rag.md)
 
 ## 🔍 Troubleshooting
 
@@ -195,6 +193,6 @@ See the full blog post: [RAG vs Graph-RAG: When Agents Hallucinate Answers](../b
 
 **Graph build slow:** Each document takes ~30s (LLM extraction). 300 docs ≈ 2.5 hours. Run once.
 
-**API errors:** Check `.env` has valid `OPENAI_API_KEY`
+**API errors:** Check has valid `OPENAI_API_KEY`
 
 **Model alternatives:** All demos work with OpenAI, Anthropic, or Ollama — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/)
