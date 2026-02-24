@@ -2,6 +2,8 @@
 
 > Traditional RAG makes AI agents hallucinate statistics and aggregations. This demo compares RAG (FAISS) vs Graph-RAG (Neo4j) on 300 hotel FAQ documents to measure which approach reduces hallucinations.
 
+![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/rag-hallucination-problem.png)
+
 ## Research Background
 
 Based on recent papers:
@@ -30,6 +32,8 @@ Graph-RAG solves this with:
 | Multi-hop reasoning | ❌ Limited to top-k docs | ✅ Relationship traversal |
 | Counting across documents | ❌ Only sees 3 docs | ✅ Precise COUNT() |
 | Missing data handling | ❌ Fabricates answers | ✅ Honest "no results" |
+
+![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/rag-vs-graph-rag-accuracy.png)
 
 ## 🏗️ Architecture
 

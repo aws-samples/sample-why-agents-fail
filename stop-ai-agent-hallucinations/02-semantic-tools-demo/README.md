@@ -1,6 +1,6 @@
 # Semantic Tool Selection: Reducing Agent Hallucinations
 
-![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](../blog-series/blog-images/semantic-tool-selection-filtering.png)
+![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/semantic-tool-selection-filtering.png)
 
 **AI agents with many similar tools pick the wrong one and waste tokens. This demo builds a travel agent with Strands Agents and uses FAISS to filter 31 tools down to the top 3 most relevant, comparing filtered vs unfiltered tool selection accuracy.**
 
@@ -24,9 +24,7 @@ Research ([Internal Representations, 2025](https://arxiv.org/abs/2601.05214)) id
 
 Semantic tool selection filters tools **before** the agent sees them:
 
-```
-User Query → FAISS Search → Top 3 Tools → Agent → Correct Selection
-```
+![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/semantic-tool-selection.png)
 
 **Results**: Improved accuracy, fewer tokens
 
@@ -99,7 +97,7 @@ uv venv && uv pip install -r requirements.txt
 ## Run the Demo
 
 ```bash
-jupyter notebook test_semantic_tools_hallucinations.ipynb
+ est_semantic_tools_hallucinations.ipynb
 ```
 
 **What it does**:
@@ -129,30 +127,10 @@ uv run token_comparison_app.py
 - Verifies `swap_tools()` preserves conversation history
 
 **Expected output**:
-```
-======================================================================
-RESULTS
-======================================================================
 
-Total tokens:
-  Traditional:       5700 tokens
-  Semantic:          1500 tokens (+73.7%)
-  Semantic+Memory:   2700 tokens (+52.6%)
+![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/semantic-tools-demo-tokens-reduction.png)
 
-Query                                             Trad      Sem      Mem    Saved
-----------------------------------------------------------------------
-What's the weather in Paris?                      1900      500      500     1400
-Find flights from NYC to London                   1900      500      900     1000
-Book a hotel in Rome for John                     1900      500     1300      600
-
-✅ Key Finding:
-   • Traditional sends 31 tools every query
-   • Semantic sends only 3 tools per query
-   • Semantic saves 4200 tokens (73.7%) vs Traditional
-   • Memory approach accumulates conversation history
-   • Memory uses 1200 MORE tokens than Semantic (conversation context)
-   • But still saves 3000 tokens (52.6%) vs Traditional
-```
+![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/semantic-tool-selection-results.png)
 
 **Token breakdown**:
 - **Traditional**: 31 tools × 50 tokens = ~1550 tokens/query (constant)

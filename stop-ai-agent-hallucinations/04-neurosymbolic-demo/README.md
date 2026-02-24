@@ -1,6 +1,6 @@
 # Part 4: Neurosymbolic Integration - Verifiable Agent Decisions
 
-![Diagram showing LLM flexibility combined with symbolic rule enforcement](../blog-series/blog-images/neurosymbolic.png)
+![Diagram showing LLM flexibility combined with symbolic rule enforcement](images/neurosymbolic.png)
 
 Combines LLM flexibility with symbolic rules for verifiable, constrained decision-making in AI agents.
 

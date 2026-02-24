@@ -1,7 +1,5 @@
 # Multi-Agent Validation with Graph-RAG - Hallucination Detection
 
-![Diagram showing executor, validator, and critic agents in validation pipeline](../blog-series/blog-images/single-vs-multi-agent-accuracy.png)
-
 **Single agents hallucinate without detection—they claim success when operations fail and fabricate responses. Multi-agent validation with Executor → Validator → Critic pattern catches these errors through cross-validation. We'll build a travel booking system with Strands Agents Swarm that detects invalid hotels and returns explicit FAILED status instead of hallucinating alternatives.**
 
 Based on research: [Teaming LLMs to Detect and Mitigate Hallucinations](https://arxiv.org/pdf/2510.19507)
@@ -21,13 +19,7 @@ Research ([Markov Chain Multi-Agent Debate, 2024](https://arxiv.org/html/2406.03
 
 Multiple specialized agents that validate each other, enhanced with Graph-RAG:
 
-```
-User Request → Executor + Graph-RAG → Validator → Critic → Final Response
-                  ↓                      ↓          ↓
-              Uses tools            Verifies     Approves/
-              + structured data     with DB      Rejects
-```
-
+![Diagram showing executor, validator, and critic agents in validation pipeline](images/single-vs-multi-agent-accuracy.png)
 ## Quick Start
 
 ### Prerequisites
