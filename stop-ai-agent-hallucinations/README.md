@@ -1,145 +1,175 @@
-## 🚀 Stop AI Agent Hallucinations: 4 Essential Techniques
+# Stop AI Agent Hallucinations: 4 Essential Techniques
 
-[![GitHub stars](https://img.shields.io/github/stars/your-org/DevEx-Agent-Hallucinations.svg?style=for-the-badge&logo=github&color=yellow)](https://github.com/your-org/DevEx-Agent-Hallucinations/stargazers) [![License](https://img.shields.io/badge/License-MIT--0-blue.svg?style=for-the-badge)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.9+-green.svg?style=for-the-badge&logo=python)](https://python.org) [![AWS](https://img.shields.io/badge/AWS-Bedrock-orange.svg?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/bedrock/) [![Strands](https://img.shields.io/badge/🧬-Strands_Agents-blue.svg?style=for-the-badge)](https://strandsagents.com)
+[![License](https://img.shields.io/badge/License-MIT--0-blue.svg?style=for-the-badge)](../LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.9+-green.svg?style=for-the-badge&logo=python)](https://python.org)
+[![Strands](https://img.shields.io/badge/Strands_Agents-framework-blue.svg?style=for-the-badge)](https://strandsagents.com)
+[![AWS](https://img.shields.io/badge/AWS-Bedrock-orange.svg?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/bedrock/)
 
-*Research-backed techniques to stop AI agent hallucinations: Graph-RAG for precise data retrieval, semantic tool selection for accurate tool choice, neurosymbolic guardrails for rule enforcement, and multi-agent validation for error detection.*
+Research-backed techniques to stop AI agent hallucinations: Graph-RAG for precise data retrieval, semantic tool selection for accurate tool choice, multi-agent validation for error detection, and neurosymbolic guardrails for rule enforcement.
 
-⭐ Star this repository
+> This demo uses Strands Agents. Similar patterns can be applied in LangGraph, AutoGen, or other agent frameworks.
 
----
-
-## 📓 Hallucination Prevention Demos
-
-| 📓 Demo | 🎯 Focus & Key Learning | ⏱️ Time | 📊 Level |
-|---------|------------------------|----------|----------|
-| **01 - [Graph-RAG vs Traditional RAG](01-faq-graphrag-demo/)** | Structured data retrieval - Compare RAG vs Graph-RAG on 300 hotel FAQs, Neo4j knowledge graph with auto entity extraction, eliminate hallucinations | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
-| **02 - [Semantic Tool Selection with FAISS](02-semantic-tools-demo/)** | Intelligent tool filtering - Filter 31 tools to top 3 relevant, reduce errors by 75% and token costs by 89%, dynamic tool swapping | 45 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
-| **03 - [Multi-Agent Validation Pattern](03-multiagent-demo/)** | Cross-validation workflows - Executor → Validator → Critic pattern catches hallucinations, Strands Swarm orchestration | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
-| **04 - [Neurosymbolic Rule Enforcement](04-neurosymbolic-demo/)** | Symbolic validation - Compare prompt engineering vs symbolic rules, 100% business rule compliance, LLM cannot bypass | 20 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
+⭐ **[Star this repository](https://github.com/aws-samples/sample-why-agents-fail)** to follow updates • **[Start Learning](01-faq-graphrag-demo/)** with Demo 01
 
 ---
 
-## 🔧 Technologies Used
+## Demos
 
-<details>
-
-| 🔧 Technology | 🎯 Purpose | ⚡ Key Capabilities |
-|---------------|------------|---------------------|
-| **[Strands Agents](https://strandsagents.com)** | AI agent framework | Dynamic tool swapping, multi-agent orchestration, conversation memory |
-| **[Amazon Bedrock](https://aws.amazon.com/bedrock/)** | LLM access | Claude 3 Haiku for agent reasoning and tool calling |
-| **[Neo4j](https://neo4j.com)** | Graph database | Relationship-aware queries, precise aggregations, multi-hop traversal |
-| **[FAISS](https://github.com/facebookresearch/faiss)** | Vector search | Semantic similarity, tool filtering, efficient nearest neighbor search |
-| **[SentenceTransformers](https://www.sbert.net/)** | Embeddings | Text embeddings for semantic tool selection |
-
-</details>
+| Demo | Description | Stack |
+|------|-------------|-------|
+| [01 - Graph-RAG vs RAG](01-faq-graphrag-demo/) | Compare RAG vs Graph-RAG on 300 hotel FAQs. Graph-RAG eliminates statistical hallucinations with native database aggregations. | ![Python](https://img.shields.io/badge/Python-3.9+-green) ![Neo4j](https://img.shields.io/badge/Neo4j-graph-blue) ![FAISS](https://img.shields.io/badge/FAISS-vector-orange) |
+| [02 - Semantic Tool Selection](02-semantic-tools-demo/) | Filter 29 tools down to the top 3 relevant per query. Reduces wrong tool selection and token costs significantly. | ![Python](https://img.shields.io/badge/Python-3.9+-green) ![FAISS](https://img.shields.io/badge/FAISS-vector-orange) ![SentenceTransformers](https://img.shields.io/badge/SentenceTransformers-embeddings-purple) |
+| [03 - Multi-Agent Validation](03-multiagent-demo/) | Executor → Validator → Critic pattern catches hallucinations before they reach users. Detects invalid hotels, fabricated stats, and silent failures. | ![Python](https://img.shields.io/badge/Python-3.9+-green) ![Swarm](https://img.shields.io/badge/Strands-Swarm-blue) |
+| [04 - Neurosymbolic Guardrails](04-neurosymbolic-demo/) | Combine LLM flexibility with symbolic rules. Business logic enforced at the tool level — the LLM cannot bypass it. | ![Python](https://img.shields.io/badge/Python-3.9+-green) ![Hooks](https://img.shields.io/badge/Strands-Hooks-blue) |
 
 ---
 
+## How Each Demo Works
 
-## 🎯 Prerequisites
+### Demo 01: Graph-RAG vs Traditional RAG
 
-**Before You Begin:**
-- Python 3.9+ installed locally
-- LLM access: OpenAI (default), AWS Bedrock, Anthropic, or Ollama
-- `OPENAI_API_KEY` environment variable (for default setup)
-- AWS CLI configured if using Bedrock (`aws configure`)
-- Basic understanding of AI agents and tool calling
+Traditional RAG returns top-k text chunks — the LLM guesses aggregations and fabricates statistics. Graph-RAG executes precise Cypher queries on a knowledge graph and computes exact results.
 
-**Model Configuration:**
-All demos use OpenAI with GPT-4o-mini by default. You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) for configuration.
+![Agentic RAG vs Agentic Graph-RAG comparison](01-faq-graphrag-demo/images/rag-hallucination-problem.png)
 
-**AWS Credentials Setup (if using Bedrock):**
-Follow the [AWS credentials configuration guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) to configure your environment.
+**Accuracy by query type — aggregation, count, filtering, multi-hop, missing data:**
+
+![RAG vs Graph-RAG accuracy bar chart](01-faq-graphrag-demo/images/rag-vs-graph-rag-accuracy.png)
 
 ---
 
-## 🚀 Quick Start Guide
+### Demo 02: Semantic Tool Selection
 
-### 1. **Clone Repository**
+When an agent has many tools, it picks the wrong one and wastes tokens describing all of them. Semantic filtering uses FAISS vector search to pre-select only the most relevant tools per query.
+
+![Traditional vs Semantic Tool Discovery comparison](02-semantic-tools-demo/images/semantic-tool-selection-filtering.png)
+
+**Flow: query → vector similarity search → top 3 tools → agent → correct selection**
+
+![Semantic tool selection flow diagram](02-semantic-tools-demo/images/semantic-tool-selection.png)
+
+**Accuracy and token cost comparison:**
+
+![Accuracy and token cost comparison charts](02-semantic-tools-demo/images/semantic-tool-selection-results.png)
+
+---
+
+### Demo 03: Multi-Agent Validation
+
+A single agent has no mechanism to detect its own hallucinations. The Executor → Validator → Critic pattern cross-validates each response before it reaches the user.
+
+![Executor Validator Critic multi-agent pipeline](03-multiagent-demo/images/single-vs-multi-agent-accuracy.png)
+
+---
+
+### Demo 04: Neurosymbolic Guardrails
+
+Prompt engineering is a suggestion — the LLM can ignore it. Symbolic rules enforced via Strands Hooks intercept every tool call and block violations before execution.
+
+![Prompt Engineering vs Symbolic Rules comparison](04-neurosymbolic-demo/images/neurosymbolic.png)
+
+---
+
+## Quick Start
+
+> **Prerequisites:** Python 3.9+, OpenAI API key (or Amazon Bedrock), `uv` package manager
+
+### 1. Clone and choose a demo
+
 ```bash
 git clone https://github.com/aws-samples/sample-why-agents-fail
-cd 01-faq-graphrag-demo
+cd stop-ai-agent-hallucinations/01-faq-graphrag-demo  # or any other demo
 ```
 
-### 2. **Choose a Demo** (Start with Graph-RAG)
-```bash
-cd 01-faq-graphrag-demo
+### 2. Install dependencies
 
-# Install dependencies
+```bash
 uv venv && uv pip install -r requirements.txt
-
-# Extract data
-unzip hotel-faqs.zip -d data/
 ```
 
-### 3. **Run Demo**
-```bash
-# Build data stores first
-uv run load_vector_data.py  # FAISS index
-uv run build_graph.py       # Neo4j knowledge graph
+### 3. Configure API key
 
-# Run comparison
+```bash
+cp .env.example .env
+# Edit .env and add OPENAI_API_KEY=your-key
+# Get your key at https://platform.openai.com/api-keys
+```
+
+### 4. Run
+
+```bash
+# Demo 01 (requires Neo4j — see 01-faq-graphrag-demo/README.md for setup)
+uv run load_vector_data_lite.py && uv run build_graph_lite.py
 uv run travel_agent_demo.py
+
+# Demo 02
+jupyter notebook test_semantic_tools_hallucinations.ipynb
+
+# Demo 03
+uv run test_multiagent_hallucinations.py
+
+# Demo 04
+uv run test_neurosymbolic_hooks.py
 ```
 
-### 4. **Explore Other Techniques**
-```bash
-cd ../02-semantic-tools-demo  # Semantic tool selection
-cd ../03-multiagent-demo      # Multi-agent validation
-cd ../04-neurosymbolic-demo   # Neurosymbolic rules
-```
+---
+
+## Key Findings
+
+| Technique | Problem Solved | What to Expect |
+|-----------|---------------|----------------|
+| **Graph-RAG** | Statistical hallucinations, incomplete retrieval | Graph-RAG answers aggregation and count queries correctly where RAG guesses |
+| **Semantic Tool Selection** | Wrong tool selection, token waste | Fewer tokens per call and lower error rate vs passing all tools on every query |
+| **Multi-Agent Validation** | Silent failures, undetected hallucinations | Invalid hotel detected and returned FAILED instead of silently substituted |
+| **Neurosymbolic Rules** | Business rule violations, prompt bypass | Rules enforced at hook level — cannot be circumvented by prompt manipulation |
 
 ---
 
-## 📝 Key Findings
+## Technologies Used
 
-1. **Graph-RAG eliminates statistical hallucinations** - Structured knowledge graph provides precise answers instead of LLM inference 
-2. **Semantic tool selection detects hallucinations up to 86.4%** - Research shows filtering tools before agent sees them significantly reduces errors ([Internal Representations paper](https://arxiv.org/abs/2601.05214))
-3. **Token costs reduced by 89%** - Filtering 31 tools to top 3 reduces tokens from 4,500 to 500 per query (demo results)
-4. **Neurosymbolic rules enforce 100% compliance** - Symbolic validation at tool level cannot be bypassed by prompt engineering (demo results)
-5. **Multi-agent validation catches hallucinations** - Cross-validation through specialized agent roles detects errors before reaching users (demo results)
-
----
-
-## 📚 Research Background
-
-Based on recent papers:
-- [MetaRAG: Metamorphic Testing for Hallucination Detection](https://arxiv.org/pdf/2509.09360)
-- [Internal Representations as Indicators of Hallucinations in Agent Tool Selection](https://arxiv.org/abs/2601.05214) 
-- [Teaming LLMs to Detect and Mitigate Hallucinations](https://arxiv.org/pdf/2510.19507) 
-- [RAG-KG-IL: Multi-Agent Hybrid Framework](https://arxiv.org/pdf/2503.13514) 
+| Technology | Purpose |
+|------------|---------|
+| [Strands Agents](https://strandsagents.com) | AI agent framework — tool calling, hooks, swarm orchestration |
+| [Neo4j](https://neo4j.com) | Graph database for relationship-aware queries and precise aggregations |
+| [FAISS](https://github.com/facebookresearch/faiss) | Vector similarity search for semantic tool filtering |
+| [SentenceTransformers](https://www.sbert.net/) | Local text embeddings — no API cost, swap for any provider |
+| [neo4j-graphrag](https://neo4j.com/docs/neo4j-graphrag-python/current/) | Automatic knowledge graph construction from documents |
 
 ---
 
-## 📖 Additional Learning Resources
+## Research Background
 
-- [Complete Blog Post](blog-series/blog-unified-hallucinations.md) - Detailed guide with all 4 techniques and code examples
-- [Strands Agents Documentation](https://strandsagents.com) - Framework documentation and model providers
-- [AWS Bedrock Documentation](https://docs.aws.amazon.com/bedrock/) - LLM service guide and model access
-- [Neo4j Graph Database Guide](https://neo4j.com/docs/) - Graph database setup and Cypher queries
-
----
-
-<div align="center">
-
-**⭐ Star this repository** • **📖 [Start Learning](01-faq-graphrag-demo/)**
-
-</div>
+- [RAG-KG-IL: Multi-Agent Hybrid Framework for Reducing Hallucinations](https://arxiv.org/pdf/2503.13514) — KG reduces hallucinations vs standalone LLMs
+- [Internal Representations as Indicators of Hallucinations in Agent Tool Selection](https://arxiv.org/abs/2601.05214) — Tool selection errors increase with tool count
+- [Teaming LLMs to Detect and Mitigate Hallucinations](https://arxiv.org/pdf/2510.19507) — Multi-agent debate detects errors single agents miss
+- [MetaRAG: Metamorphic Testing for Hallucination Detection](https://arxiv.org/pdf/2509.09360) — Hallucinations are inherent to LLMs without structured grounding
 
 ---
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
-**OpenTelemetry warnings**: Ignore "Failed to detach context" warnings - they don't affect functionality
+**OpenTelemetry warnings:** Ignore "Failed to detach context" — does not affect functionality.
 
-**AWS credentials**: Ensure credentials are configured with Bedrock access and appropriate permissions
+**API errors:** Check `.env` has a valid `OPENAI_API_KEY`. Get one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys).
 
-**Model alternatives**: All demos work with OpenAI, Anthropic, or Ollama - see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/)
+**Neo4j not found:** Graph-RAG demo (01) requires Neo4j Desktop with the APOC plugin. Demos 02, 03, and 04 run without it.
 
-**Neo4j setup**: Graph-RAG demo requires Neo4j database. See [01-faq-graphrag-demo/README.md](01-faq-graphrag-demo/README.md) for setup instructions
+**Model alternatives:** All demos work with OpenAI, Amazon Bedrock, Anthropic, or Ollama — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/).
 
 ---
 
-## 📄 License
+## Contributing
 
-This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) file for details.
+Contributions are welcome! See [CONTRIBUTING](../CONTRIBUTING.md) for more information.
+
+---
+
+## Security
+
+If you discover a potential security issue in this project, notify AWS/Amazon Security via the [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public GitHub issue.
+
+---
+
+## License
+
+This library is licensed under the MIT-0 License. See the [LICENSE](../LICENSE) file for details.
