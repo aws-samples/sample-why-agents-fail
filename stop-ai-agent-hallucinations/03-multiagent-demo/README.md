@@ -77,13 +77,15 @@ The tests include:
 
 ## How It Works
 
+**Strands Agents makes this simple**: define what each agent does, and `Swarm` handles all coordination — autonomous handoffs, shared context, explicit `COMPLETED`/`FAILED` status — with no custom orchestration code.
+
 ### Basic Multi-Agent
 ```python
 from strands import Agent
 from strands.multiagent import Swarm
 
 # Three specialized agents
-executor = Agent(name="executor", tools=ALL_TOOLS, 
+executor = Agent(name="executor", tools=ALL_TOOLS,
     system_prompt="Execute requests, then hand off to validator")
 
 validator = Agent(name="validator",

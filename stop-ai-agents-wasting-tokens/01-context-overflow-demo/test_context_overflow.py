@@ -1,30 +1,30 @@
 """
-Demo: Context Window Overflow with Large Tool Outputs
+Demo: Context Window Overflow — Naive Agent vs Memory Pointer Pattern
 
 Based on IBM Research paper "Solving Context Window Overflow in AI Agents"
 https://arxiv.org/html/2511.22729v1
 
-This demo shows how agents fail when tool outputs are too large and how
-to fix it using the Memory Pointer Pattern.
+Runs two agents with the SAME query:
+  Test 1: Naive agent — raw JSON enters LLM context (high tokens)
+  Test 2: Pointer agent — data stays in agent.state (low tokens)
+
+Then prints a comparison table with measured token counts.
 """
 
 import os
+import json
+import time
+import secrets
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from strands import Agent
+from strands import Agent, tool
 # Using OpenAI-compatible interface via Strands SDK (not direct OpenAI usage)
 from strands.models.openai import OpenAIModel
 from strands.agent.conversation_manager import SlidingWindowConversationManager
-from tools import (
-    fetch_application_logs,
-    analyze_error_patterns,
-    detect_latency_anomalies,
-    generate_incident_report
-)
-from strands_tools import calculator
+from tools import fetch_application_logs, analyze_error_patterns
 
 load_dotenv()
 
-# Ensure OpenAI API key is set
 if not os.getenv("OPENAI_API_KEY"):
     raise ValueError(
         "OPENAI_API_KEY not set. Get your API key from https://platform.openai.com/api-keys "
@@ -32,238 +32,134 @@ if not os.getenv("OPENAI_API_KEY"):
         "2) Run: export OPENAI_API_KEY=your-key"
     )
 
-def count_tokens(text: str) -> int:
-    """Rough token count estimation (1 token ≈ 4 chars)."""
-    return len(text) // 4
+MODEL = OpenAIModel(model_id="gpt-4o-mini")
 
-def run_scenario_1_baseline():
-    """
-    Scenario 1: BASELINE (FAILS)
-    
-    No context management. Agent tries to process large log dataset
-    directly in context window. Will fail with context overflow.
-    """
-    print("\n" + "="*70)
-    print("SCENARIO 1: BASELINE (No Context Management)")
-    print("="*70)
-    print("Expected: Context overflow or performance degradation\n")
-    
-    # Create agent WITHOUT conversation manager
-    agent = Agent(
-        model=OpenAIModel(model_id="gpt-4o-mini"),
-        tools=[
-            fetch_application_logs,
-            analyze_error_patterns,
-            calculator
-        ]
-    )
-    
-    # Reduced from 24 to 6 hours for faster execution
-    query = (
-        "Fetch 6 hours of logs for 'payment-service' and analyze error patterns. "
-        "Report services with more than 20 errors."
-    )
-    
-    print(f"Query: {query}\n")
-    
-    try:
-        response = agent(query)
-        print(f"Response: {response}")
-        
-        # Estimate token usage (simplified - just count response)
-        tokens = count_tokens(query + str(response))
-        print(f"\n📊 Estimated tokens: {tokens:,}")
-        
-    except Exception as e:
-        print(f"❌ FAILED: {type(e).__name__}: {str(e)[:200]}")
+# Same query for both tests — the only variable is whether the tool uses memory pointers
+QUERY = (
+    "Fetch 2 hours of logs for 'api-gateway' and analyze error patterns. "
+    "How many errors occurred and which services had the most?"
+)
 
-def run_scenario_2_memory_pointer():
-    """
-    Scenario 2: MEMORY POINTER PATTERN (SUCCEEDS)
-    
-    Uses memory pointers to store large data outside context window.
-    Agent interacts with pointers instead of raw data.
-    
-    Based on IBM Research paper approach.
-    """
-    print("\n" + "="*70)
-    print("SCENARIO 2: MEMORY POINTER PATTERN (IBM Research)")
-    print("="*70)
-    print("Expected: Success with 7x token reduction\n")
-    
-    # Clear memory store
-    
-    # Create agent with sliding window
+
+# ── Naive tool (WITHOUT memory pointer) ──────────────────────────────────────
+
+@tool
+def naive_fetch_logs(app_name: str, hours: int = 2) -> str:
+    """Fetch application logs. Returns full raw JSON — no memory pointer pattern."""
+    log_levels = ["INFO", "WARN", "ERROR", "DEBUG"]
+    services = ["api-gateway", "auth-service", "db-connector", "cache-layer"]
+    logs = []
+    base = datetime.now() - timedelta(hours=hours)
+    for i in range(hours * 100):
+        logs.append({
+            "timestamp": (base + timedelta(seconds=i)).isoformat(),
+            "level": log_levels[secrets.randbelow(len(log_levels))],
+            "service": services[secrets.randbelow(len(services))],
+            "message": f"Event {i}",
+            "duration_ms": secrets.randbelow(4991) + 10,
+            "status_code": [200, 201, 400, 404, 500, 503][secrets.randbelow(6)],
+        })
+    return json.dumps(logs)  # Full raw JSON enters LLM context directly
+
+
+# ── Token measurement ────────────────────────────────────────────────────────
+
+def count_context_tokens(agent) -> int:
+    """Count tokens from all messages in conversation history."""
+    total = 0
+    for msg in agent.messages:
+        content = msg.get("content", [])
+        if isinstance(content, str):
+            total += len(content) // 4
+        elif isinstance(content, list):
+            for block in content:
+                if isinstance(block, dict):
+                    if "text" in block:
+                        total += len(block["text"]) // 4
+                    elif "toolResult" in block:
+                        for item in block["toolResult"].get("content", []):
+                            if "text" in item:
+                                total += len(item["text"]) // 4
+                    elif "toolUse" in block:
+                        total += len(json.dumps(block["toolUse"].get("input", {}))) // 4
+    return total
+
+
+# ── Tests ────────────────────────────────────────────────────────────────────
+
+def run_test_1_naive():
+    """Test 1: Agent WITHOUT memory pointer — raw JSON in context."""
+    print("\n" + "=" * 70)
+    print("TEST 1: WITHOUT MEMORY POINTER (naive agent)")
+    print("=" * 70)
+    print(f"Query: {QUERY}\n")
+
+    agent = Agent(model=MODEL, tools=[naive_fetch_logs])
+
+    start = time.time()
+    response = agent(QUERY)
+    elapsed = time.time() - start
+    tokens = count_context_tokens(agent)
+
+    print(f"\n⏱️  {elapsed:.1f}s")
+    print(f"📊 Tokens in context: {tokens:,}")
+    return {"tokens": tokens, "time": elapsed}
+
+
+def run_test_2_pointer():
+    """Test 2: Agent WITH memory pointer — data stays in agent.state."""
+    print("\n" + "=" * 70)
+    print("TEST 2: WITH MEMORY POINTER PATTERN")
+    print("=" * 70)
+    print(f"Query: {QUERY}\n")
+
     agent = Agent(
-        model=OpenAIModel(model_id="gpt-4o-mini"),
+        model=MODEL,
         conversation_manager=SlidingWindowConversationManager(window_size=40),
-        tools=[
-            fetch_application_logs,
-            analyze_error_patterns,
-            detect_latency_anomalies,
-            generate_incident_report,
-            calculator
-        ]
+        tools=[fetch_application_logs, analyze_error_patterns],
     )
-    
-    # Reduced from 24 to 12 hours for faster execution
-    query = (
-        "Fetch 12 hours of logs for 'payment-service', analyze error patterns "
-        "and detect latency anomalies. Generate an incident report."
-    )
-    
-    print(f"Query: {query}\n")
-    
-    try:
-        response = agent(query)
-        print(f"Response: {response}")
-        
-        # Calculate token usage (simplified)
-        tokens = count_tokens(query + str(response))
-        print(f"\n📊 Estimated tokens: {tokens:,}")
-        print(f"📦 agent.state entries: {len(agent.state._data)}")  # _data is internal; no public len() API yet
-        
-        # Show memory pointers
-        if agent.state._data:  # _data is internal; no public iteration API yet
-            print("\n🔗 Memory Pointers in agent.state:")
-            for pointer, data in agent.state._data.items():
-                size = len(str(data))
-                print(f"  - {pointer}: {size:,} bytes")
-        
-    except Exception as e:
-        print(f"❌ FAILED: {type(e).__name__}: {str(e)[:200]}")
 
-def run_scenario_3_custom_window():
-    """
-    Scenario 3: CUSTOM SLIDING WINDOW
-    
-    Uses smaller window size (20 messages) for more aggressive pruning.
-    """
-    print("\n" + "="*70)
-    print("SCENARIO 3: CUSTOM SLIDING WINDOW (20 messages)")
-    print("="*70)
-    print("Expected: Success with even lower token usage\n")
-    
-    agent = Agent(
-        model=OpenAIModel(model_id="gpt-4o-mini"),
-        conversation_manager=SlidingWindowConversationManager(window_size=20),
-        tools=[
-            fetch_application_logs,
-            analyze_error_patterns,
-            calculator
-        ]
-    )
-    
-    # Reduced from 12 to 6 hours for faster execution
-    query = "Fetch 6 hours of logs for 'api-gateway' and analyze error patterns."
-    
-    print(f"Query: {query}\n")
-    
-    try:
-        response = agent(query)
-        print(f"Response: {response}")
-        
-        tokens = count_tokens(query + str(response))
-        print(f"\n📊 Estimated tokens: {tokens:,}")
-        
-    except Exception as e:
-        print(f"❌ FAILED: {type(e).__name__}: {str(e)[:200]}")
+    start = time.time()
+    response = agent(QUERY)
+    elapsed = time.time() - start
+    tokens = count_context_tokens(agent)
 
-def run_scenario_4_per_turn():
-    """
-    Scenario 4: PER-TURN MANAGEMENT
-    
-    Applies context management proactively every N model calls.
-    Useful for agents with many tool operations.
-    
-    Note: per_turn parameter may not be available in current Strands version.
-    """
-    print("\n" + "="*70)
-    print("SCENARIO 4: PER-TURN MANAGEMENT (Every 3 calls)")
-    print("="*70)
-    print("Expected: Proactive context management during execution\n")
-    
-    # Try with per_turn, fallback to basic if not supported
-    try:
-        agent = Agent(
-            model=OpenAIModel(model_id="gpt-4o-mini"),
-            conversation_manager=SlidingWindowConversationManager(
-                window_size=30,
-                per_turn=3  # Manage every 3 model calls
-            ),
-            tools=[
-                fetch_application_logs,
-                analyze_error_patterns,
-                detect_latency_anomalies,
-                calculator
-            ]
-        )
-    except TypeError:
-        print("⚠️  per_turn parameter not supported, using basic sliding window\n")
-        agent = Agent(
-            model=OpenAIModel(model_id="gpt-4o-mini"),
-            conversation_manager=SlidingWindowConversationManager(window_size=30),
-            tools=[
-                fetch_application_logs,
-                analyze_error_patterns,
-                detect_latency_anomalies,
-                calculator
-            ]
-        )
-    
-    # Reduced from 6 to 3 hours for faster execution
-    query = (
-        "Fetch 3 hours of logs for 'auth-service', analyze errors, "
-        "and detect latency anomalies."
-    )
-    
-    print(f"Query: {query}\n")
-    
-    try:
-        response = agent(query)
-        print(f"Response: {response}")
-        
-        tokens = count_tokens(query + str(response))
-        print(f"\n📊 Estimated tokens: {tokens:,}")
-        
-    except Exception as e:
-        print(f"❌ FAILED: {type(e).__name__}: {str(e)[:200]}")
+    pointer = "logs-api-gateway"
+    stored = agent.state.get(pointer)
+    data_size = len(json.dumps(stored)) if stored else 0
 
-def run_comparison():
-    """
-    Run all scenarios and compare results.
-    """
-    print("\n" + "="*70)
-    print("CONTEXT OVERFLOW DEMO - LOG ANALYSIS SYSTEM")
-    print("="*70)
-    print("\nBased on IBM Research: 'Solving Context Window Overflow in AI Agents'")
-    print("Paper: https://arxiv.org/html/2511.22729v1\n")
-    
-    scenarios = [
-        ("Baseline (No Management)", run_scenario_1_baseline),
-        ("Memory Pointer Pattern", run_scenario_2_memory_pointer),
-        ("Custom Window (20 msgs)", run_scenario_3_custom_window),
-        ("Per-Turn Management", run_scenario_4_per_turn)
-    ]
-    
-    for name, func in scenarios:
-        try:
-            func()
-        except KeyboardInterrupt:
-            print("\n\n⚠️  Interrupted by user")
-            break
-        except Exception as e:
-            print(f"\n❌ Scenario failed: {e}")
-    
-    print("\n" + "="*70)
-    print("DEMO COMPLETE")
-    print("="*70)
-    print("\n📊 Key Findings:")
-    print("  1. Baseline fails or uses excessive tokens")
-    print("  2. Memory Pointer Pattern: ~7x token reduction")
-    print("  3. Custom window: Further optimization possible")
-    print("  4. Per-turn: Proactive management for complex workflows")
-    print("\n💡 Recommendation: Use Memory Pointer Pattern for large tool outputs")
+    print(f"\n⏱️  {elapsed:.1f}s")
+    print(f"📊 Tokens in context: {tokens:,}")
+    if stored:
+        print(f"📦 agent.state['{pointer}']: {data_size:,} bytes — never entered LLM context")
+    return {"tokens": tokens, "time": elapsed, "data_size": data_size}
+
+
+# ── Comparison ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    run_comparison()
+    print("=" * 70)
+    print("  CONTEXT OVERFLOW DEMO")
+    print("  Naive agent vs Memory Pointer Pattern — same query, measured tokens")
+    print("=" * 70)
+
+    r1 = run_test_1_naive()
+    r2 = run_test_2_pointer()
+
+    print("\n" + "=" * 70)
+    print("  COMPARISON")
+    print("=" * 70)
+
+    print(f"\n  {'Approach':<40} {'Tokens':>10} {'Time':>8} {'Data outside context':>22}")
+    print("  " + "-" * 82)
+    print(f"  {'Test 1 — Naive (no pointer)':<40} {r1['tokens']:>10,} {r1['time']:>6.1f}s {'—':>22}")
+    print(f"  {'Test 2 — Memory Pointer Pattern':<40} {r2['tokens']:>10,} {r2['time']:>6.1f}s {r2.get('data_size', 0):>20,} B")
+
+    if r1["tokens"] > r2["tokens"] > 0:
+        reduction = (1 - r2["tokens"] / r1["tokens"]) * 100
+        ratio = r1["tokens"] // r2["tokens"]
+        print(f"\n  → {reduction:.0f}% fewer tokens with Memory Pointer Pattern ({ratio}x)")
+        print(f"  → {r2.get('data_size', 0):,} bytes processed — never entered LLM context")
+
+    print(f"\n  Strands Agents: https://strandsagents.com")
+    print(f"  IBM Research:   https://arxiv.org/html/2511.22729v1")

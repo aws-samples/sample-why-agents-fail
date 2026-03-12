@@ -74,7 +74,7 @@ uv run python swarm_demo.py
 uv run python quick_test.py
 
 # Jupyter notebooks
-# Open test_context_overflow.ipynb  (single-agent) or swarm_demo.ipynb (multi-agent)
+# Open test_context_overflow.ipynb  (single-agent) or test_multiagent_context_overflow.ipynb (multi-agent)
 # in Jupyter, Kiro, or your preferred notebook environment
 ```
 
@@ -88,7 +88,7 @@ uv run python quick_test.py
 | `test_context_overflow.py` | Single-agent demo with 4 scenarios |
 | `test_context_overflow.ipynb` | Interactive single-agent notebook |
 | `swarm_demo.py` | Multi-agent Swarm demo (Collector → Analyzer → Reporter) |
-| `swarm_demo.ipynb` | Interactive Swarm notebook with follow-up investigation |
+| `test_multiagent_context_overflow.ipynb` | Interactive Swarm notebook with follow-up investigation |
 | `quick_test.py` | Quick smoke test |
 | `requirements.txt` | Dependencies |
 

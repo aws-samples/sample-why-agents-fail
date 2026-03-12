@@ -20,6 +20,7 @@ class DebounceHook(HookProvider):
     """
 
     def __init__(self, window_size=3):
+        self._lock = Lock()
         self.call_history = []
         self.window_size = window_size
         self.blocked_count = 0
@@ -29,27 +30,31 @@ class DebounceHook(HookProvider):
         registry.add_callback(BeforeToolCallEvent, self.check_duplicate)
 
     def reset(self, event: BeforeInvocationEvent) -> None:
-        self.call_history = []
-        self.blocked_count = 0
+        with self._lock:
+            self.call_history = []
+            self.blocked_count = 0
 
     def check_duplicate(self, event: BeforeToolCallEvent) -> None:
         key = (event.tool_use["name"], str(event.tool_use["input"]))
-        recent = self.call_history[-self.window_size:]
+        with self._lock:
+            recent = self.call_history[-self.window_size:]
 
-        if recent.count(key) >= 2:
-            self.blocked_count += 1
-            event.cancel_tool = f"BLOCKED: Duplicate call — {event.tool_use['name']} called {recent.count(key)} times with same input"
-            print(f"🚫 Loop detected! Blocked duplicate call to {event.tool_use['name']}")
-            return
+            count = recent.count(key)
+            if count >= 2:
+                self.blocked_count += 1
+                event.cancel_tool = f"BLOCKED: Duplicate call — {event.tool_use['name']} called {count} times with same input"
+                print(f"🚫 Loop detected! Blocked duplicate call to {event.tool_use['name']}")
+                return
 
-        self.call_history.append(key)
+            self.call_history.append(key)
 
     def get_stats(self):
-        return {
-            "total_calls": len(self.call_history),
-            "blocked_calls": self.blocked_count,
-            "unique_calls": len(set(self.call_history)),
-        }
+        with self._lock:
+            return {
+                "total_calls": len(self.call_history),
+                "blocked_calls": self.blocked_count,
+                "unique_calls": len(set(self.call_history)),
+            }
 
 
 class LimitToolCounts(HookProvider):

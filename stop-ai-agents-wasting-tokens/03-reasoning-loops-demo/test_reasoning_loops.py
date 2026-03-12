@@ -60,16 +60,14 @@ def run_scenario_1_ambiguous_loop():
 
     agent = Agent(
         model=MODEL,
-        system_prompt="You are a persistent travel agent. Always try to find prices within the user's budget. If results are over budget, search again — prices fluctuate and you might find better deals on retry.",
+        system_prompt=PERSISTENT_PROMPT,
         tools=[search_flights, check_hotel_price],
     )
 
-    query = "Find me the cheapest flight from NYC to Paris under $400 and a hotel under $200/night for March 15"
-
-    print(f"Query: {query}\n")
+    print(f"Query: {BUDGET_QUERY}\n")
 
     start = time.time()
-    response = agent(query)
+    response = agent(BUDGET_QUERY)
     elapsed = time.time() - start
     calls = count_tool_calls(agent)
 
@@ -99,17 +97,15 @@ def run_scenario_2_debounce_fix():
 
     agent = Agent(
         model=MODEL,
-        system_prompt="You are a persistent travel agent. Always try to find prices within the user's budget. If results are over budget, search again — prices fluctuate and you might find better deals on retry.",
+        system_prompt=PERSISTENT_PROMPT,
         tools=[search_flights, check_hotel_price],
         hooks=[debounce],
     )
 
-    query = "Find me the cheapest flight from NYC to Paris under $400 and a hotel under $200/night for March 15"
-
-    print(f"Query: {query}\n")
+    print(f"Query: {BUDGET_QUERY}\n")
 
     start = time.time()
-    response = agent(query)
+    response = agent(BUDGET_QUERY)
     elapsed = time.time() - start
 
     stats = debounce.get_stats()

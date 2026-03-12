@@ -86,7 +86,9 @@ async def check_job_status(job_id: str) -> str:
     if job["status"] == "processing":
         return f"PROCESSING: Job {job_id} still running"
     elif job["status"] == "completed":
-        return f"COMPLETED: {job['result']}"
+        result = job["result"]
+        del JOBS[job_id]  # cleanup — completed jobs don't need to stay in memory
+        return f"COMPLETED: {result}"
     else:
         return f"UNKNOWN: Job {job_id} in unknown state"
 

@@ -1,10 +1,12 @@
 """
-Demo: MCP Tools Timeout - Real Scenarios from Research
+Demo: MCP Tools Timeout — Synchronous vs Async HandleId Pattern
 
-Based on research papers:
+Based on research:
 - "Resilient AI Agents With MCP" (Octopus, May 2025)
 - OpenAI Community reports on 424 errors and unresponsive states
-- "Handling Timeouts with Long-Running MCP Connectors" (Dec 2025)
+
+Runs 4 scenarios against the same MCP server, captures response times,
+and compares synchronous (problem) vs async handleId (solution).
 """
 
 import os
@@ -26,180 +28,124 @@ if not os.getenv("OPENAI_API_KEY"):
         "2) Run: export OPENAI_API_KEY=your-key"
     )
 
+MODEL = OpenAIModel(model_id="gpt-4o-mini")
+
+
 def create_mcp_agent():
-    """Create agent with MCP tools."""
+    """Create agent with MCP tools from mcp_server.py."""
     mcp_client = MCPClient(
         lambda: stdio_client(
-            StdioServerParameters(
-                command=sys.executable,
-                args=["mcp_server.py"]
-            )
+            StdioServerParameters(command=sys.executable, args=["mcp_server.py"])
         )
     )
-    
-    return Agent(
-        model=OpenAIModel(model_id="gpt-4o-mini"),
-        tools=[mcp_client]
-    )
+    return Agent(model=MODEL, tools=[mcp_client])
 
-def run_scenario_1_baseline():
-    """
-    Scenario 1: FAST API (Baseline)
-    
-    Shows normal operation with fast-responding API.
-    Research: This is the expected behavior.
-    """
-    print("\n" + "="*70)
-    print("SCENARIO 1: FAST API (Baseline - Expected Behavior)")
-    print("="*70)
-    print("Research: Fast APIs provide good UX\n")
-    
+
+# ── Tests ────────────────────────────────────────────────────────────────────
+
+def run_test_1_fast():
+    """Test 1: Fast API — baseline, good UX."""
+    print("\n" + "=" * 70)
+    print("TEST 1: FAST API (baseline)")
+    print("=" * 70)
+
     agent = create_mcp_agent()
-    query = "Use fast_api to process 'user data'"
-    
-    print(f"Query: {query}\n")
-    
     start = time.time()
-    response = agent(query)
+    response = agent("Use fast_api to process 'user data'")
     elapsed = time.time() - start
-    
-    print(f"\n✅ Response: {response}")
-    print(f"⏱️  Time: {elapsed:.1f}s")
-    print("✅ Good UX - Quick response")
 
-def run_scenario_2_slow_api():
-    """
-    Scenario 2: SLOW API (Problem from Research)
-    
-    Research finding: "External APIs taking too long"
-    Impact: Agent waits indefinitely, poor UX
-    """
-    print("\n" + "="*70)
-    print("SCENARIO 2: SLOW API (15 seconds - Poor UX)")
-    print("="*70)
-    print("Research: 'Agent waits indefinitely - No timeout configured'\n")
-    
+    print(f"⏱️  {elapsed:.1f}s")
+    return {"time": elapsed, "status": "ok"}
+
+
+def run_test_2_slow():
+    """Test 2: Slow API — agent blocks for 15+ seconds."""
+    print("\n" + "=" * 70)
+    print("TEST 2: SLOW API (agent blocks ~15s)")
+    print("=" * 70)
+    print("⏳ Waiting ~15s for slow API...\n")
+
     agent = create_mcp_agent()
-    query = "Use slow_api to query database for 'customer records'"
-    
-    print(f"Query: {query}\n")
-    print("⏳ Waiting for slow API...\n")
-    
     start = time.time()
-    response = agent(query)
+    response = agent("Use slow_api to query database for 'customer records'")
     elapsed = time.time() - start
-    
-    print(f"\n✅ Response: {response}")
-    print(f"⏱️  Time: {elapsed:.1f}s")
-    print("⚠️  Problem: Agent waited full duration - poor UX")
 
-def run_scenario_3_failing_api():
-    """
-    Scenario 3: FAILING API (424 Error from Research)
-    
-    Research: "424 Failed Dependency when MCP tools timeout"
-    OpenAI Community: "Call remote MCP server tool timed out, error 424"
-    """
-    print("\n" + "="*70)
-    print("SCENARIO 3: FAILING API (424 Failed Dependency)")
-    print("="*70)
-    print("Research: '424 errors when tool running too long'\n")
-    
+    print(f"⏱️  {elapsed:.1f}s — agent waited full duration")
+    return {"time": elapsed, "status": "slow"}
+
+
+def run_test_3_failing():
+    """Test 3: Failing API — 424 error after delay."""
+    print("\n" + "=" * 70)
+    print("TEST 3: FAILING API (424 error)")
+    print("=" * 70)
+
     agent = create_mcp_agent()
-    query = "Use failing_api to connect to external service"
-    
-    print(f"Query: {query}\n")
-    
     start = time.time()
     try:
-        response = agent(query)
+        response = agent("Use failing_api to connect to external service")
         elapsed = time.time() - start
-        print(f"\n✅ Response: {response}")
-        print(f"⏱️  Time: {elapsed:.1f}s")
+        print(f"⏱️  {elapsed:.1f}s")
+        return {"time": elapsed, "status": "error"}
     except Exception as e:
         elapsed = time.time() - start
-        print(f"\n❌ Error after {elapsed:.1f}s")
-        print(f"Error type: {type(e).__name__}")
-        print(f"Message: {str(e)[:200]}")
-        print("\n⚠️  This demonstrates 424 Failed Dependency from research")
+        print(f"❌ Error after {elapsed:.1f}s: {type(e).__name__}: {str(e)[:150]}")
+        return {"time": elapsed, "status": "error"}
 
-def run_scenario_4_async_pattern():
-    """
-    Scenario 4: ASYNC PATTERN (Solution from Research)
-    
-    Research solution: "Return immediately with handleId"
-    Key: "Respond to MCP request ASAP to avoid timeouts"
-    """
-    print("\n" + "="*70)
-    print("SCENARIO 4: ASYNC PATTERN (Solution from Research)")
-    print("="*70)
-    print("Research: 'Return handleId immediately, check status later'\n")
-    
+
+def run_test_4_async():
+    """Test 4: Async handleId pattern — immediate response, then poll."""
+    print("\n" + "=" * 70)
+    print("TEST 4: ASYNC PATTERN (handleId solution)")
+    print("=" * 70)
+
     agent = create_mcp_agent()
-    
-    # Step 1: Start job
-    query1 = "Use start_long_job to process 'large dataset'"
-    print(f"Step 1: {query1}\n")
-    
-    start = time.time()
-    response1 = agent(query1)
-    elapsed1 = time.time() - start
-    
-    print(f"\n✅ Response: {response1}")
-    print(f"⏱️  Time: {elapsed1:.1f}s")
-    print("✅ Immediate response - good UX!")
-    
-    # Step 2: Check status
-    print("\n" + "-"*70)
-    query2 = "Use check_job_status to check the job that was just started"
-    print(f"Step 2: {query2}\n")
-    
-    start = time.time()
-    response2 = agent(query2)
-    elapsed2 = time.time() - start
-    
-    print(f"\n✅ Response: {response2}")
-    print(f"⏱️  Time: {elapsed2:.1f}s")
-    print("\n💡 Solution: Async pattern prevents timeout!")
 
-def run_comparison():
-    """Run all scenarios to validate research findings."""
-    print("\n" + "="*70)
-    print("MCP TIMEOUT DEMO - VALIDATING RESEARCH FINDINGS")
-    print("="*70)
-    print("\nBased on:")
-    print("  • 'Resilient AI Agents With MCP' (Octopus, May 2025)")
-    print("  • OpenAI Community reports on 424 errors")
-    print("  • 'Handling Timeouts with Long-Running MCP Connectors'\n")
-    
-    scenarios = [
-        ("Fast API (Baseline)", run_scenario_1_baseline),
-        ("Slow API (Problem)", run_scenario_2_slow_api),
-        ("Failing API (424 Error)", run_scenario_3_failing_api),
-        ("Async Pattern (Solution)", run_scenario_4_async_pattern),
-    ]
-    
-    for name, func in scenarios:
-        try:
-            func()
-        except KeyboardInterrupt:
-            print("\n\n⚠️  Interrupted by user")
-            break
-        except Exception as e:
-            print(f"\n❌ Scenario failed: {e}")
-    
-    print("\n" + "="*70)
-    print("RESEARCH VALIDATION COMPLETE")
-    print("="*70)
-    print("\n📊 Findings Validated:")
-    print("  ✅ Fast APIs: Good UX (~2-5s)")
-    print("  ✅ Slow APIs: Poor UX (15+ seconds wait)")
-    print("  ✅ Failing APIs: 424 errors occur")
-    print("  ✅ Async Pattern: Solves timeout problem")
-    print("\n💡 Research Confirmed:")
-    print("  • 'Agent waits indefinitely' - VALIDATED")
-    print("  • '424 Failed Dependency' - VALIDATED")
-    print("  • 'Return handleId immediately' - WORKS")
+    # Step 1: start job — returns handle immediately
+    start = time.time()
+    response1 = agent("Use start_long_job to process 'large dataset'")
+    step1 = time.time() - start
+    print(f"Step 1 — handle returned in {step1:.1f}s")
+
+    # Step 2: check status
+    start = time.time()
+    response2 = agent("Use check_job_status to check the job that was just started")
+    step2 = time.time() - start
+    total = step1 + step2
+    print(f"Step 2 — status in {step2:.1f}s  |  Total: {total:.1f}s")
+
+    return {"time": total, "step1": step1, "status": "ok"}
+
+
+# ── Comparison ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    run_comparison()
+    print("=" * 70)
+    print("  MCP TIMEOUT DEMO")
+    print("  Synchronous vs Async HandleId — same agent, measured response times")
+    print("=" * 70)
+
+    r1 = run_test_1_fast()
+    r2 = run_test_2_slow()
+    r3 = run_test_3_failing()
+    r4 = run_test_4_async()
+
+    print("\n" + "=" * 70)
+    print("  COMPARISON")
+    print("=" * 70)
+
+    print(f"\n  {'Scenario':<35} {'Time':>8}  UX")
+    print("  " + "-" * 55)
+    print(f"  {'1. Fast API (baseline)':<35} {r1['time']:>6.1f}s  ✅ Good")
+    print(f"  {'2. Slow API (problem)':<35} {r2['time']:>6.1f}s  ❌ Agent blocked")
+    print(f"  {'3. Failing API (424)':<35} {r3['time']:>6.1f}s  ❌ Error")
+    print(f"  {'4. Async handleId (solution)':<35} {r4['time']:>6.1f}s  ✅ Immediate")
+
+    if r2["time"] > r4["time"]:
+        improvement = r2["time"] - r4["time"]
+        pct = 100 * improvement / r2["time"]
+        print(f"\n  → Async saved {improvement:.1f}s vs slow API ({pct:.0f}% faster)")
+        print(f"  → First response in {r4.get('step1', 0):.1f}s — no timeout risk")
+
+    print(f"\n  Strands MCP Tools: https://strandsagents.com/latest/documentation/docs/user-guide/concepts/tools/mcp-tools/")
+    print(f"  Research: https://octopus.com/blog/mcp-timeout-retry")

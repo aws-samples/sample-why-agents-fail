@@ -25,11 +25,10 @@ print("Running agent...\n")
 try:
     response = agent(query)
     print(f"\n✅ Response: {response}\n")
-    print(f"📦 Memory pointers in agent.state: {len(agent.state._data)}")  # _data is internal; no public len() API yet
-
-    for pointer in agent.state._data:  # _data is internal; no public iteration API yet
-        data = agent.state.get(pointer)
-        print(f"  - {pointer}: {len(str(data)):,} bytes")
+    pointer = "logs-payment-service"
+    stored = agent.state.get(pointer)
+    if stored:
+        print(f"📦 agent.state['{pointer}']: {len(str(stored)):,} bytes")
             
 except Exception as e:
     print(f"\n❌ Error: {type(e).__name__}: {e}")
