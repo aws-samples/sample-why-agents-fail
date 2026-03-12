@@ -130,6 +130,8 @@ class DebounceHook(HookProvider):
 - OpenAI API key (or Amazon Bedrock, Anthropic, Ollama) — get one at https://platform.openai.com/api-keys
 - `OPENAI_API_KEY` environment variable (a setting that tells your system where to find your API credentials)
 
+> You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) for configuration.
+
 ### Run Any Demo
 
 ```bash

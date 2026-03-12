@@ -46,6 +46,8 @@ Four scenarios demonstrate why agents loop and how to stop them:
 - Python 3.9+
 - OpenAI API key
 
+> You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) for configuration.
+
 ### Installation
 
 ```bash

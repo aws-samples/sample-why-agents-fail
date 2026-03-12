@@ -53,6 +53,8 @@ python --version
 export OPENAI_API_KEY="your-key-here"
 ```
 
+> You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) for configuration.
+
 ### Installation
 
 ```bash
