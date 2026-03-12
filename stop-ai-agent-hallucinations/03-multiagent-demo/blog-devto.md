@@ -299,7 +299,7 @@ uv run test_multiagent_hallucinations.py
 ### Strands Agents
 - [Strands Swarm](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/swarm/) — Multi-agent orchestration with autonomous handoffs
 - [Multi-Agent Patterns](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/multi-agent-patterns/) — Shared state across agents
-- [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) — Swap to Bedrock, Anthropic, Ollama
+- [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) — Swap to Amazon Bedrock, Anthropic, Ollama
 - [Strands Agents Documentation](https://strandsagents.com) — Full framework docs
 
 ### Code

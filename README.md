@@ -96,13 +96,13 @@ This repository demonstrates research-backed techniques for preventing AI agent 
 - Python 3.9+ installed locally
 - LLM access: OpenAI (default), Amazon Bedrock, Anthropic, or Ollama
 - `OPENAI_API_KEY` environment variable (for default setup)
-- AWS CLI configured if using Bedrock (`aws configure`)
+- AWS CLI configured if using Amazon Bedrock (`aws configure`)
 - Basic understanding of AI agents and tool calling
 
 **Model Configuration:**
 All demos use OpenAI with GPT-4o-mini by default. You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) for configuration.
 
-**AWS Credentials Setup (if using Bedrock):**
+**AWS Credentials Setup (if using Amazon Bedrock):**
 Follow the [AWS credentials configuration guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html?trk=87c4c426-cddf-4799-a299-273337552ad8&sc_channel=el) to configure your environment.
 
 ---

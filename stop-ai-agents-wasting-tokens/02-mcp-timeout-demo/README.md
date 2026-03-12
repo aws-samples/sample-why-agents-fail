@@ -157,7 +157,7 @@ The agent gets an immediate response and can poll, do other work, or inform the 
 - [Resilient AI Agents With MCP](https://octopus.com/blog/mcp-timeout-retry) — Octopus, May 2025
 - [Call remote MCP server tool timed out, error 424](https://community.openai.com/t/call-remote-mcp-server-tool-timed-out-resulting-in-error-424/1364167) — OpenAI Community
 - [Strands MCP Tools](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/tools/mcp-tools/) — Connect any MCP server with MCPClient
-- [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) — Swap to Bedrock, Anthropic, Ollama
+- [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) — Swap to Amazon Bedrock, Anthropic, Ollama
 - [Strands Agents Documentation](https://strandsagents.com) — Full framework docs
 
 ---

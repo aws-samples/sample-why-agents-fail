@@ -161,7 +161,7 @@ The `test_multiagent_hallucinations.ipynb` notebook includes:
 
 **OpenTelemetry warnings**: Ignore "Failed to detach context" warnings - they don't affect functionality
 
-**AWS credentials**: Ensure credentials are configured with Bedrock access
+**AWS credentials**: Ensure credentials are configured with Amazon Bedrock access
 
 **Graph-RAG tests skipped**: Optional - requires Neo4j setup. Core tests work without it.
 
