@@ -2,7 +2,7 @@
 
 > Traditional RAG makes AI agents hallucinate statistics and aggregations. This demo compares RAG (FAISS) vs Graph-RAG (Neo4j) on 300 hotel FAQ documents to measure which approach reduces hallucinations.
 
-![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/rag-hallucination-problem.png)
+![Agentic RAG vs Agentic Graph-RAG comparison](images/rag-hallucination-problem.png)
 
 ## Research Background
 
@@ -33,7 +33,7 @@ Graph-RAG solves this with:
 | Counting across documents | ❌ Only sees 3 docs | ✅ Precise COUNT() |
 | Missing data handling | ❌ Fabricates answers | ✅ Honest "no results" |
 
-![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/rag-vs-graph-rag-accuracy.png)
+![RAG vs Graph-RAG accuracy by query type](images/rag-vs-graph-rag-accuracy.png)
 
 ## 🏗️ Architecture
 
@@ -196,3 +196,21 @@ If you add new documents with new entity types (Restaurant, Airport, etc.), the 
 **API errors:** Check has valid `OPENAI_API_KEY`
 
 **Model alternatives:** All demos work with OpenAI, Anthropic, or Ollama — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/)
+
+---
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING](../../CONTRIBUTING.md) for more information.
+
+---
+
+## Security
+
+If you discover a potential security issue in this project, notify AWS/Amazon Security via the [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public GitHub issue.
+
+---
+
+## License
+
+This library is licensed under the MIT-0 License. See the [LICENSE](../../LICENSE) file for details.

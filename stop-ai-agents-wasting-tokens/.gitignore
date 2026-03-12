@@ -50,8 +50,8 @@ plugins/
 hotel-faqs-extracted/
 *.pkl
 
-agents-times-out/
 
 test-play/
 05-meta-tooling-demo/
-.claude
+
+blog-series-times-out/

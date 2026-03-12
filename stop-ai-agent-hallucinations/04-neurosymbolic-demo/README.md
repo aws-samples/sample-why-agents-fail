@@ -1,4 +1,4 @@
-# Part 4: Neurosymbolic Guardrails Integration - Verifiable Agent Decisions
+# Neurosymbolic Guardrails: Verifiable Agent Decisions
 > Combines LLM flexibility with symbolic rules for verifiable, constrained decision-making in AI agents.
 
 
@@ -116,3 +116,21 @@ The agent uses the LLM to understand "Confirm booking BK001 for me", but the hoo
 - [Enhancing LLMs through Neuro-Symbolic Integration](https://arxiv.org/pdf/2504.07640v1)
 - [Agentic Neuro-Symbolic Programming](https://cognaptus.com/blog/2026-01-05-when-llms-stop-guessing-and-start-complying-agentic-neurosymbolic-programming/)
 - [Strands Agents Hooks Documentation](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/agents/hooks/)
+
+---
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING](../../CONTRIBUTING.md) for more information.
+
+---
+
+## Security
+
+If you discover a potential security issue in this project, notify AWS/Amazon Security via the [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public GitHub issue.
+
+---
+
+## License
+
+This library is licensed under the MIT-0 License. See the [LICENSE](../../LICENSE) file for details.

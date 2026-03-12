@@ -1,12 +1,12 @@
 # 🤖 Why AI Agents Fail (And How to Fix Them)
 
 
-[![GitHub stars](https://img.shields.io/github/stars/build-on-aws/why-agents-fail.svg?style=for-the-badge&logo=github&color=yellow)](https://github.com/build-on-aws/why-agents-fail/stargazers) [![License](https://img.shields.io/badge/License-MIT--0-blue.svg?style=for-the-badge)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.9+-green.svg?style=for-the-badge&logo=python)](https://python.org) [![AWS](https://img.shields.io/badge/AWS-Bedrock-orange.svg?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/bedrock/) [![Strands](https://img.shields.io/badge/🧬-Strands_Agents-blue.svg?style=for-the-badge)](https://strandsagents.com)
+[![GitHub stars](https://img.shields.io/github/stars/aws-samples/sample-why-agents-fail.svg?style=for-the-badge&logo=github&color=yellow)](https://github.com/aws-samples/sample-why-agents-fail/stargazers) [![License](https://img.shields.io/badge/License-MIT--0-blue.svg?style=for-the-badge)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.9+-green.svg?style=for-the-badge&logo=python)](https://python.org) [![AWS](https://img.shields.io/badge/AWS-Bedrock-orange.svg?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/bedrock/) [![Strands](https://img.shields.io/badge/🧬-Strands_Agents-blue.svg?style=for-the-badge)](https://strandsagents.com)
 
 
 *Research-backed solutions to the three critical failure modes that break AI agents in production: hallucinations, timeouts, and memory loss.*
 
-⭐ Star this repository
+⭐ **[Star this repository](https://github.com/aws-samples/sample-why-agents-fail)**
 
 ---
 
@@ -17,7 +17,7 @@ This repository demonstrates research-backed techniques for preventing AI agent 
 | 🚨 Failure Mode | 💡 Solution Approach | 📊 Projects | ⏱️ Total Time |
 |----------------|---------------------|-------------|---------------|
 | **[Hallucinations](#-stop-ai-agent-hallucinations)** | Detection and mitigation through 4 techniques | 4 demos | 2 hours |
-| **Timeouts** | Context management and async patterns | Coming soon | - |
+| **[Getting Stuck](#-stop-agents-from-wasting-tokens)** | Context overflow, MCP timeouts, reasoning loops | 3 demos | 1.5 hours |
 | **Memory Loss** | Persistent memory and context retrieval | Coming soon | - |
 
 ---
@@ -50,9 +50,21 @@ This repository demonstrates research-backed techniques for preventing AI agent 
 
 ---
 
-## Why Your Agent Times Out
+## 🔄 Stop Agents from Wasting Tokens
 
-*(Coming soon)*
+**The Problem**: Agents get stuck when context windows overflow with large data, MCP tools stop responding on slow APIs, or agents repeat the same tool calls without making progress — burning tokens and blocking workflows.
+
+**The Solution**: 3 research-backed techniques that prevent context overflow, handle unresponsive APIs, and detect reasoning loops before they waste resources.
+
+### 📓 Token Waste & Stuck Agent Demos
+
+| 📓 Demo | 🎯 Focus & Key Learning | ⏱️ Time | 📊 Level |
+|---------|------------------------|----------|----------|
+| **01 - [Context Window Overflow](stop-ai-agents-wasting-tokens/01-context-overflow-demo/)** | Memory management — Store large data outside context with Memory Pointer Pattern, 7x token reduction validated by IBM Research | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
+| **02 - [MCP Tools Not Responding](stop-ai-agents-wasting-tokens/02-mcp-timeout-demo/)** | Async patterns — Handle slow/unresponsive APIs with async handleId, prevent 424 errors, immediate responses | 20 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
+| **03 - [Reasoning Loops](stop-ai-agents-wasting-tokens/03-reasoning-loops-demo/)** | Loop detection — DebounceHook blocks duplicate calls, clear SUCCESS/FAILED states stop retries, 7x fewer tool calls | 25 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
+
+**[→ Explore token waste prevention demos](stop-ai-agents-wasting-tokens/)**
 
 ---
 
@@ -82,7 +94,7 @@ This repository demonstrates research-backed techniques for preventing AI agent 
 
 **Before You Begin:**
 - Python 3.9+ installed locally
-- LLM access: OpenAI (default), AWS Bedrock, Anthropic, or Ollama
+- LLM access: OpenAI (default), Amazon Bedrock, Anthropic, or Ollama
 - `OPENAI_API_KEY` environment variable (for default setup)
 - AWS CLI configured if using Bedrock (`aws configure`)
 - Basic understanding of AI agents and tool calling
@@ -119,9 +131,9 @@ Each demo folder contains detailed README files and working code examples.
 |-------------|---------------------|------------------|------------------|
 | OpenAI GPT-4o-mini | ~$0.15 per 1M input tokens | Agent reasoning and tool calling | [OpenAI Pricing](https://openai.com/pricing) |
 | Amazon Bedrock (Claude) | ~$0.25 per 1M input tokens | Alternative LLM provider | [Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/) |
-| Neo4j (local) | Free | Graph database for demos | [Neo4j Community](https://neo4j.com/download/) |
-| FAISS (local) | Free | Vector search library | Open source |
-| SentenceTransformers | Free | Local embeddings | Open source |
+| Neo4j (local) | Free | Graph database for demos | [Neo4j Pricing](https://neo4j.com/pricing/) |
+| FAISS (local) | Free | Vector search library | [FAISS GitHub](https://github.com/facebookresearch/faiss) |
+| SentenceTransformers | Free | Local embeddings | [SBERT Docs](https://www.sbert.net/) |
 
 > 💡 All demos can run locally with minimal costs. OpenAI GPT-4o-mini is the most cost-effective option for testing.
 
@@ -130,7 +142,7 @@ Each demo folder contains detailed README files and working code examples.
 ## 📖 Additional Learning Resources
 
 - [Strands Agents Documentation](https://strandsagents.com) - Framework documentation and model providers
-- [AWS Bedrock Documentation](https://docs.aws.amazon.com/bedrock?trk=87c4c426-cddf-4799-a299-273337552ad8&sc_channel=el) - LLM service guide and model access
+- [Amazon Bedrock Documentation](https://docs.aws.amazon.com/bedrock?trk=87c4c426-cddf-4799-a299-273337552ad8&sc_channel=el) - LLM service guide and model access
 - [Search for tools in your AgentCore gateway with a natural language query](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-using-mcp-semantic-search.html)
 - [Neo4j Graph Database Guide](https://neo4j.com/docs/) - Graph database setup and Cypher queries
 
@@ -140,7 +152,7 @@ Each demo folder contains detailed README files and working code examples.
 
 <div align="center">
 
-**⭐ Star this repository** • **📖 [Start Learning](stop-ai-agent-hallucinations/)**
+**⭐ **[Star this repository](https://github.com/aws-samples/sample-why-agents-fail)**** • **📖 [Start Learning](stop-ai-agent-hallucinations/)**
 
 </div>
 
@@ -149,7 +161,13 @@ Each demo folder contains detailed README files and working code examples.
 
 ## 🤝 Contributing
 
-Contributions are welcome! See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+Contributions are welcome! See [CONTRIBUTING](CONTRIBUTING.md) for more information.
+
+---
+
+## Security
+
+If you discover a potential security issue in this project, notify AWS/Amazon Security via the [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public GitHub issue.
 
 ---
 

@@ -1,6 +1,6 @@
 # Semantic Tool Selection: Reducing Agent Hallucinations
 
-![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/semantic-tool-selection-filtering.png)
+![Traditional vs Semantic Tool Discovery comparison](images/semantic-tool-selection-filtering.png)
 
 **AI agents with many similar tools pick the wrong one and waste tokens. This demo builds a travel agent with Strands Agents and uses FAISS to filter 29 tools down to the top 3 most relevant, comparing filtered vs unfiltered tool selection accuracy.**
 
@@ -24,7 +24,7 @@ Research ([Internal Representations, 2025](https://arxiv.org/abs/2601.05214)) id
 
 Semantic tool selection filters tools **before** the agent sees them:
 
-![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/semantic-tool-selection.png)
+![Semantic tool selection flow diagram](images/semantic-tool-selection.png)
 
 **Results**: Improved accuracy, fewer tokens
 
@@ -97,7 +97,7 @@ uv venv && uv pip install -r requirements.txt
 ## Run the Demo
 
 ```bash
- est_semantic_tools_hallucinations.ipynb
+Open `test_semantic_tools_hallucinations.ipynb` in Jupyter, Kiro, or your preferred notebook environment.
 ```
 
 **What it does**:
@@ -128,9 +128,9 @@ uv run token_comparison_app.py
 
 **Expected output**:
 
-![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/semantic-tools-demo-tokens-reduction.png)
+![Token reduction comparison — traditional vs semantic vs memory](images/semantic-tools-demo-tokens-reduction.png)
 
-![Diagram showing 31 tools filtered to 3 relevant tools with performance metrics](images/semantic-tool-selection-results.png)
+![Accuracy and token cost comparison charts](images/semantic-tool-selection-results.png)
 
 **Token breakdown**:
 - **Traditional**: 29 tools × 50 tokens = ~1450 tokens/query (constant)
@@ -226,5 +226,23 @@ This demo implements findings from:
 
 ## Next Steps
 
-- **Part 3**: Neurosymbolic Integration - Add symbolic rules to prevent invalid tool calls
-- **Part 4**: Multi-Agent Validation - Use multiple agents to cross-validate tool selections
+- [Demo 03 - Multi-Agent Validation](../03-multiagent-demo/) — Cross-validate tool selections with Executor → Validator → Critic
+- [Demo 04 - Neurosymbolic Guardrails](../04-neurosymbolic-demo/) — Add symbolic rules to block invalid tool calls
+
+---
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING](../../CONTRIBUTING.md) for more information.
+
+---
+
+## Security
+
+If you discover a potential security issue in this project, notify AWS/Amazon Security via the [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public GitHub issue.
+
+---
+
+## License
+
+This library is licensed under the MIT-0 License. See the [LICENSE](../../LICENSE) file for details.

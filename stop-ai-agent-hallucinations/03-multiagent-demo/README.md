@@ -1,6 +1,6 @@
 # Multi-Agent Validation with Graph-RAG - Hallucination Detection
 
-> Single agents hallucinate without detection—they claim success when operations fail and fabricate responses. Multi-agent validation with Executor → Validator → Critic pattern catches these errors through cross-validation. We'll build a travel booking system with Strands Agents Swarm that detects invalid hotels and returns explicit FAILED status instead of hallucinating alternatives.**
+> Single agents hallucinate without detection—they claim success when operations fail and fabricate responses. Multi-agent validation with Executor → Validator → Critic pattern catches these errors through cross-validation. We'll build a travel booking system with Strands Agents Swarm that detects invalid hotels and returns explicit FAILED status instead of hallucinating alternatives.
 
 Based on research: [Teaming LLMs to Detect and Mitigate Hallucinations](https://arxiv.org/pdf/2510.19507)
 
@@ -46,7 +46,7 @@ uv run test_multiagent_hallucinations.py
 
 **Option 2: Jupyter Notebook**
 ```bash
-jupyter notebook test_multiagent_hallucinations.ipynb
+Open `test_multiagent_hallucinations.ipynb` in Jupyter, Kiro, or your preferred notebook environment.
 ```
 
 The tests include:
@@ -170,3 +170,21 @@ The `test_multiagent_hallucinations.ipynb` notebook includes:
 - [MetaRAG: Metamorphic Testing for Hallucination Detection](https://arxiv.org/pdf/2509.09360)
 - [Synergistic Integration in Multi-Agent RAG Systems](https://arxiv.org/html/2511.21729v1)
 - [Strands Swarm Documentation](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/swarm/)
+
+---
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING](../../CONTRIBUTING.md) for more information.
+
+---
+
+## Security
+
+If you discover a potential security issue in this project, notify AWS/Amazon Security via the [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public GitHub issue.
+
+---
+
+## License
+
+This library is licensed under the MIT-0 License. See the [LICENSE](../../LICENSE) file for details.

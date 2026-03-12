@@ -103,7 +103,7 @@ uv run load_vector_data_lite.py && uv run build_graph_lite.py
 uv run travel_agent_demo.py
 
 # Demo 02
-jupyter notebook test_semantic_tools_hallucinations.ipynb
+# Open test_semantic_tools_hallucinations.ipynb in Jupyter, Kiro, or your preferred notebook environment
 
 # Demo 03
 uv run test_multiagent_hallucinations.py
