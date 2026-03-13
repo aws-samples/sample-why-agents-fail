@@ -1,4 +1,4 @@
-# Stop AI Agent Hallucinations: 4 Essential Techniques
+# Stop AI Agent Hallucinations: 5 Essential Techniques
 
 [![License](https://img.shields.io/badge/License-MIT--0-blue.svg?style=for-the-badge)](../LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9+-green.svg?style=for-the-badge&logo=python)](https://python.org)
@@ -21,6 +21,7 @@ Research-backed techniques to stop AI agent hallucinations: Graph-RAG for precis
 | [02 - Semantic Tool Selection](02-semantic-tools-demo/) | Filter 29 tools down to the top 3 relevant per query. Reduces wrong tool selection and token costs significantly. | ![Python](https://img.shields.io/badge/Python-3.9+-green) ![FAISS](https://img.shields.io/badge/FAISS-vector-orange) ![SentenceTransformers](https://img.shields.io/badge/SentenceTransformers-embeddings-purple) |
 | [03 - Multi-Agent Validation](03-multiagent-demo/) | Executor → Validator → Critic pattern catches hallucinations before they reach users. Detects invalid hotels, fabricated stats, and silent failures. | ![Python](https://img.shields.io/badge/Python-3.9+-green) ![Swarm](https://img.shields.io/badge/Strands-Swarm-blue) |
 | [04 - Neurosymbolic Guardrails](04-neurosymbolic-demo/) | Combine LLM flexibility with symbolic rules. Business logic enforced at the tool level — the LLM cannot bypass it. | ![Python](https://img.shields.io/badge/Python-3.9+-green) ![Hooks](https://img.shields.io/badge/Strands-Hooks-blue) |
+| [05 - Agent Control](05-agent-control-demo/) | Steer instead of block. Agent Control guides the agent to self-correct violations instead of failing — completing the task without user intervention. | ![Python](https://img.shields.io/badge/Python-3.9+-green) ![AgentControl](https://img.shields.io/badge/Agent_Control-steer-blue) |
 
 ---
 
@@ -70,6 +71,18 @@ Prompt engineering is a suggestion — the LLM can ignore it. Symbolic rules enf
 
 ---
 
+### Demo 05: Agent Control — Steer Instead of Block
+
+Hooks block violations and stop the workflow. Agent Control introduces **steer controls** — when a rule is violated, the agent receives corrective guidance via `Guide()` and retries with the fix applied, completing the task without user intervention.
+
+![Hooks (Block) vs Agent Control (Self-Correct) comparison](05-agent-control-demo/images/hooks-vs-agent-control.jpg)
+
+**Flow: User Request → LLM → Agent Control server evaluates → Self-Correct → Final Response**
+
+![Agent Control steer flow](05-agent-control-demo/images/Agent-Control.jpg)
+
+---
+
 ## Quick Start
 
 > **Prerequisites:** Python 3.9+, OpenAI API key (or Amazon Bedrock), `uv` package manager
@@ -110,6 +123,10 @@ uv run test_multiagent_hallucinations.py
 
 # Demo 04
 uv run test_neurosymbolic_hooks.py
+
+# Demo 05 (requires Agent Control server — see 05-agent-control-demo/README.md for setup)
+uv run setup_controls.py
+uv run test_hooks_vs_control.py
 ```
 
 ---
@@ -122,6 +139,7 @@ uv run test_neurosymbolic_hooks.py
 | **Semantic Tool Selection** | Wrong tool selection, token waste | Fewer tokens per call and lower error rate vs passing all tools on every query |
 | **Multi-Agent Validation** | Silent failures, undetected hallucinations | Invalid hotel detected and returned FAILED instead of silently substituted |
 | **Neurosymbolic Rules** | Business rule violations, prompt bypass | Rules enforced at hook level — cannot be circumvented by prompt manipulation |
+| **Agent Control (Steer)** | Blocked workflows, user friction | Agent self-corrects violations and completes the task — no user intervention needed |
 
 ---
 
@@ -134,6 +152,7 @@ uv run test_neurosymbolic_hooks.py
 | [FAISS](https://github.com/facebookresearch/faiss) | Vector similarity search for semantic tool filtering |
 | [SentenceTransformers](https://www.sbert.net/) | Local text embeddings — no API cost, swap for any provider |
 | [neo4j-graphrag](https://neo4j.com/docs/neo4j-graphrag-python/current/) | Automatic knowledge graph construction from documents |
+| [Agent Control](https://github.com/agentcontrol/agent-control) | Runtime control plane — steer, deny, and manage agent policies via API |
 
 ---
 
