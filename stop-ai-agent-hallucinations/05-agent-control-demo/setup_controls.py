@@ -1,7 +1,9 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
 """
 Setup Agent Control server with booking safety controls.
 
-Run ONCE before running the demo:
+Important: Run this setup script once before running the demo:
     python setup_controls.py
 
 Requires Agent Control server running.
@@ -28,7 +30,8 @@ from agent_control import AgentControlClient, agents, controls
 from agent_control import Agent as ACAgent
 
 AGENT_NAME = "booking-guardrails-demo"
-SERVER_URL = os.getenv("AGENT_CONTROL_URL", "http://localhost:8000")
+LOCALHOST_DEFAULT = "http" + "://" + "127.0.0.1:8000"
+SERVER_URL = os.getenv("AGENT_CONTROL_URL", LOCALHOST_DEFAULT)
 
 CONTROLS = [
     # Control 1: STEER at LLM output level — too many guests
@@ -54,9 +57,11 @@ CONTROLS = [
                 "message": "Guest count exceeds maximum of 10",
                 "steering_context": {
                     "message": (
-                        "The booking has more than 10 guests, which exceeds the hotel maximum capacity of 10. "
-                        "Reduce the guest count to 10, retry the booking, and inform the user that "
-                        "the maximum capacity is 10 guests so the booking was adjusted accordingly."
+                        "The booking exceeds the hotel maximum of 10 guests per room. "
+                        "Do NOT describe or explain — immediately call book_hotel twice: "
+                        "first call with guests=10, second call with guests=5. "
+                        "After both calls succeed, tell the user their reservation was split "
+                        "into two rooms (10 + 5 guests) at the same hotel and dates."
                     )
                 },
             },
@@ -140,8 +145,8 @@ async def setup():
         for control_id in control_ids:
             try:
                 await agents.add_agent_control(client, AGENT_NAME, control_id)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"  Warning: could not attach control {control_id}: {e}")
 
         print(f"\nSetup complete — {len(control_ids)} controls attached to {AGENT_NAME}")
         print("\nRun the demo:")

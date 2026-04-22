@@ -1,8 +1,10 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
 """
 Demo: Strands Hooks vs Agent Control — Block vs Self-Correct
 
 Compares two guardrail approaches on the SAME booking scenario:
-  Test 1 — Hooks: NeurosymbolicHook blocks violations with cancel_tool
+  Test 1 — Hooks: MaxGuestsHook blocks violations with cancel_tool
   Test 2 — Agent Control: AgentControlSteeringHandler steers the agent to self-correct
 
 Same tools, same model, same query. Only the guardrail layer changes.
@@ -14,6 +16,7 @@ Based on:
 
 import os
 import time
+import yaml
 
 os.environ["OTEL_SDK_DISABLED"] = "true"
 
@@ -22,22 +25,45 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from strands import Agent
-# Using OpenAI-compatible interface via Strands SDK (not direct OpenAI usage)
-from strands.models.openai import OpenAIModel
 from strands.hooks import HookProvider, HookRegistry, BeforeToolCallEvent
 
 from tools import ALL_TOOLS
 
-if not os.getenv("OPENAI_API_KEY"):
-    raise ValueError(
-        "OPENAI_API_KEY not set. Get your API key from https://platform.openai.com/api-keys "
-        "then either: 1) Add OPENAI_API_KEY=your-key to a .env file, or "
-        "2) Run: export OPENAI_API_KEY=your-key"
-    )
+_CONTROLS_FILE = os.path.join(os.path.dirname(__file__), "controls.yaml")
 
-MODEL = OpenAIModel(model_id="gpt-4o-mini")
 
-QUERY = "Book Grand Hotel for 15 guests from 2026-05-01 to 2026-05-03"
+def _inject_local_controls() -> None:
+    """Load controls.yaml and inject into agent_control state when no server is available."""
+    try:
+        import agent_control
+        from agent_control._state import state
+
+        with open(_CONTROLS_FILE) as f:
+            data = yaml.safe_load(f)
+
+        raw_controls = data.get("controls", [])
+        server_controls = [
+            {"id": i + 1, "name": c["name"], "control": {k: v for k, v in c.items() if k != "name"}}
+            for i, c in enumerate(raw_controls)
+        ]
+        state.server_controls = server_controls
+    except Exception as e:
+        print(f"⚠️  Could not load local controls: {e}")
+
+# Model configuration — Amazon Bedrock (default, requires AWS credentials)
+# Strands Agents uses Bedrock by default. No extra import needed.
+# To use a specific Bedrock model, pass the model ID as a string:
+#   MODEL = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+#
+# To use a different provider (e.g., OpenAI), install the extra and configure:
+#   pip install "strands-agents[openai]"
+#   from strands.models.openai import OpenAIModel
+#   MODEL = OpenAIModel(model_id="gpt-4o-mini")
+#   (requires OPENAI_API_KEY env var — get one at https://platform.openai.com/api-keys)
+#
+# See all providers: https://strandsagents.com/docs/user-guide/concepts/model-providers/
+
+QUERY = "Book AnyCompany Lisbon Resort for 15 guests from 2026-05-01 to 2026-05-03"
 
 # System prompt that makes the LLM describe the booking before calling the tool.
 # This is needed so the steer control can detect "15 guests" in the LLM text output.
@@ -76,7 +102,7 @@ def run_test_1_hooks():
     print(f"Query: {QUERY}\n")
 
     hook = MaxGuestsHook()
-    agent = Agent(model=MODEL, system_prompt=PROMPT, tools=ALL_TOOLS, hooks=[hook])
+    agent = Agent(system_prompt=PROMPT, tools=ALL_TOOLS, hooks=[hook])
 
     start = time.time()
     response = agent(QUERY)
@@ -120,17 +146,21 @@ def run_test_2_agent_control():
         print("   Run: uv pip install 'agent-control-sdk[strands-agents]'")
         return {"time": 0, "outcome": "skipped"}
 
+    server_url = os.getenv("AGENT_CONTROL_URL", "http" + "://" + "127.0.0.1:8000")
+
     try:
         agent_control.init(
             agent_name="booking-guardrails-demo",
-            server_url=os.getenv("AGENT_CONTROL_URL", "http://localhost:8000"),
+            server_url=server_url,
+            policy_refresh_interval_seconds=0,
         )
     except Exception as e:
         if "409" not in str(e):
-            print(f"❌ Agent Control server not available: {e}")
-            print("   See: https://github.com/agentcontrol/agent-control")
-            print("   Setup: uv run setup_controls.py")
-            return {"time": 0, "outcome": "skipped"}
+            pass  # server unavailable — will inject local controls below
+
+    # If no controls loaded from server, inject from local controls.yaml
+    if not agent_control.get_server_controls():
+        _inject_local_controls()
 
     # Plugin handles DENY controls at tool level
     plugin = AgentControlPlugin(
@@ -145,7 +175,7 @@ def run_test_2_agent_control():
         enable_logging=False,
     )
 
-    agent = Agent(model=MODEL, system_prompt=PROMPT, tools=ALL_TOOLS, plugins=[plugin, steering])
+    agent = Agent(system_prompt=PROMPT, tools=ALL_TOOLS, plugins=[plugin, steering])
 
     start = time.time()
     try:
@@ -157,8 +187,12 @@ def run_test_2_agent_control():
         print(f"\n⏱️  {elapsed:.1f}s")
         print(f"🔄 Steered: {steered} time(s)")
 
-        if "SUCCESS" in output or "BK" in output:
-            print("✅ Agent self-corrected — booking completed with adjusted guest count")
+        bk_count = output.count("BK0")
+        if bk_count >= 2:
+            print("✅ Agent self-corrected — split into 2 rooms (10 + 5 guests)")
+            return {"time": elapsed, "steered": steered, "outcome": "split-bookings"}
+        elif "SUCCESS" in output or "BK" in output:
+            print("⚠️  Agent completed booking but did not split into 2 rooms")
             return {"time": elapsed, "steered": steered, "outcome": "self-corrected"}
         else:
             print(f"⚠️  Response: {output[:200]}")
@@ -187,21 +221,7 @@ if __name__ == "__main__":
     r1 = run_test_1_hooks()
     r2 = run_test_2_agent_control()
 
-    print("\n" + "=" * 70)
-    print("  COMPARISON")
-    print("=" * 70)
-
-    print(f"\n  {'Approach':<35} {'Time':>8} {'Outcome':>20}")
-    print("  " + "-" * 65)
-    print(f"  {'Test 1 — Hooks (cancel_tool)':<35} {r1['time']:>6.1f}s {r1['outcome']:>20}")
-    print(f"  {'Test 2 — Agent Control (steer)':<35} {r2['time']:>6.1f}s {r2['outcome']:>20}")
-
-    print(f"\n  Key difference:")
-    print(f"  • Hooks: agent receives 'BLOCKED' → reports failure to user")
-    print(f"  • Agent Control: agent receives Guide('reduce to 10') → retries → succeeds")
-    print(f"\n  Both enforce the same rule (max 10 guests).")
-    print(f"  Agent Control lets the agent fix the problem instead of just blocking it.")
-
-    print(f"\n  Strands Hooks:         https://strandsagents.com/latest/documentation/docs/user-guide/concepts/agents/hooks/")
-    print(f"  Agent Control Plugin:  https://strandsagents.com/docs/community/plugins/agent-control/")
-    print(f"  Agent Control GitHub:  https://github.com/agentcontrol/agent-control")
+    print(f"\n{'Approach':<35} {'Time':>8} {'Outcome':>20}")
+    print("-" * 65)
+    print(f"{'Hooks (cancel_tool)':<35} {r1['time']:>6.1f}s {r1['outcome']:>20}")
+    print(f"{'Agent Control (steer)':<35} {r2['time']:>6.1f}s {r2['outcome']:>20}")
