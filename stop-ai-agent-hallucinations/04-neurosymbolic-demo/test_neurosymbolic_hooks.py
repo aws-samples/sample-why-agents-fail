@@ -1,3 +1,5 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
 """
 Neurosymbolic validation using Strands Hooks
 Replaces validation logic inside tools with centralized hook
@@ -8,7 +10,7 @@ from datetime import datetime
 from rules import BOOKING_RULES, CONFIRMATION_RULES, CANCELLATION_RULES, validate
 
 STATE = {
-    "bookings": {"BK001": {"hotel": "Grand Hotel", "check_in": "2026-02-15", "guests": 2}},
+    "bookings": {"BK001": {"hotel": "AnyCompany Lisbon Resort", "check_in": "2026-02-15", "guests": 2}},
     "payments": {}
 }
 
@@ -103,7 +105,7 @@ MODEL = OpenAIModel(model_id="gpt-4o-mini")
 # MODEL = "us.anthropic.claude-3-haiku-20240307-v1:0"
 
 # Option 3: Other providers - see documentation
-# https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/
+# https://strandsagents.com/docs/user-guide/concepts/model-providers/
 
 print("="*70)
 print("NEUROSYMBOLIC VALIDATION WITH STRANDS HOOKS")
@@ -124,8 +126,8 @@ agent = Agent(
 
 tests = [
     ("Confirm booking BK001", "Should block - no payment"),
-    ("Book Grand Hotel for 15 people from 2026-03-20 to 2026-03-25", "Should block - max 10 guests"),
-    ("Book Grand Hotel for 2 guests from 2026-03-20 to 2026-03-25", "Should succeed"),
+    ("Book AnyCompany Lisbon Resort for 15 people from 2026-03-20 to 2026-03-25", "Should block - max 10 guests"),
+    ("Book AnyCompany Lisbon Resort for 2 guests from 2026-03-20 to 2026-03-25", "Should succeed"),
 ]
 
 for query, expected in tests:

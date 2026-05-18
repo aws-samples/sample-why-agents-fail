@@ -1,3 +1,5 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
 #!/usr/bin/env python3
 """
 Multi-Agent Hallucination Detection Test
@@ -23,13 +25,13 @@ MODEL = OpenAIModel(model_id="gpt-4o-mini")
 # MODEL = "us.anthropic.claude-3-haiku-20240307-v1:0"
 
 # Option 3: Other providers - see documentation
-# https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/
+# https://strandsagents.com/docs/user-guide/concepts/model-providers/
 
 # Ground truth for validation
 GROUND_TRUTH = {
-    "grand_hotel": {"price": 200, "available": True},
-    "budget_inn": {"price": 80, "available": True},
-    "luxury_resort": {"price": 500, "available": False}
+    "anycompany_lisbon": {"name": "AnyCompany Lisbon Resort", "price": 95, "available": True},
+    "anycompany_paris": {"name": "AnyCompany Paris City Hotel", "price": 110, "available": True},
+    "anycompany_rome": {"name": "AnyCompany Rome City Hotel", "price": 115, "available": False},
 }
 
 print("="*70)
@@ -45,13 +47,13 @@ single_agent = Agent(
     model=MODEL
 )
 
-result = single_agent("Book grand_hotel for John for 2 nights")
-print(f"✓ Response: {result.message['content'][0]['text'][:100]}...")
+result = single_agent("Book anycompany_lisbon for John for 2 nights")
+print(f"✓ Response: {result.message['content'][0]['text']}")
 
 # TEST 2: Single Agent - Invalid Hotel (hallucination test)
-print("\n[TEST 2] Single Agent - Invalid Hotel (the_ritz_paris doesn't exist)")
-result = single_agent("Book the_ritz_paris for Sarah for 3 nights")
-print(f"⚠️  Response: {result.message['content'][0]['text'][:150]}...")
+print("\n[TEST 2] Single Agent - Invalid Hotel (AnyCompany Antarctica doesn't exist)")
+result = single_agent("Book anycompany_antarctica for Sarah for 3 nights")
+print(f"⚠️  Response: {result.message['content'][0]['text']}")
 
 # TEST 3: Multi-Agent with Validation
 print("\n[TEST 3] Multi-Agent - Valid Booking with Validation")
@@ -83,18 +85,18 @@ You are the last agent - do NOT hand off.""",
 
 swarm = Swarm([executor, validator, critic], entry_point=executor, max_handoffs=5)
 
-result = swarm("Book grand_hotel for John for 2 nights")
+result = swarm("Book anycompany_lisbon for John for 2 nights")
 print(f"✓ Flow: {' → '.join([n.node_id for n in result.node_history])}")
 print(f"✓ Status: {result.status}")
 
 # TEST 4: Multi-Agent - Invalid Hotel Detection
 print("\n[TEST 4] Multi-Agent - Invalid Hotel Detection")
-result = swarm("Book the_ritz_paris for Sarah for 3 nights")
+result = swarm("Book anycompany_antarctica for Sarah for 3 nights")
 print(f"✓ Flow: {' → '.join([n.node_id for n in result.node_history])}")
 print(f"✓ Status: {result.status}")
 final_text = result.results[result.node_history[-1].node_id].result.message['content']
 if final_text:
-    print(f"✓ Final verdict: {final_text[0]['text'][:200]}...")
+    print(f"✓ Final verdict: {final_text[0]['text']}")
 
 print("\n" + "="*70)
 print("CONCLUSION:")
