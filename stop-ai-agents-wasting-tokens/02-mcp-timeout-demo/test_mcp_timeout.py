@@ -43,6 +43,17 @@ def create_mcp_agent():
 
 # ── Tests ────────────────────────────────────────────────────────────────────
 
+def get_total_tokens(response):
+    """Extract total token usage from an agent result using Strands native metrics."""
+    # 📊 Token counting — Strands native metric (same for OpenAI, Bedrock, etc.).
+    # response.metrics.accumulated_usage sums ALL the LLM calls made during this task.
+    # totalTokens = input (prompt + system prompt + tools + history) + output (response).
+    # We check '.metrics' because it can be None if the provider does not report usage.
+    if response.metrics:
+        return response.metrics.accumulated_usage["totalTokens"]
+    return 0
+
+
 def run_test_1_fast():
     """Test 1: Fast API — baseline, good UX."""
     print("\n" + "=" * 70)
@@ -53,9 +64,11 @@ def run_test_1_fast():
     start = time.time()
     response = agent("Use fast_api to process 'user data'")
     elapsed = time.time() - start
+    tokens = get_total_tokens(response)
 
     print(f"⏱️  {elapsed:.1f}s")
-    return {"time": elapsed, "status": "ok"}
+    print(f"💰 Tokens: {tokens:,} total")
+    return {"time": elapsed, "tokens": tokens, "status": "ok"}
 
 
 def run_test_2_slow():
@@ -69,9 +82,11 @@ def run_test_2_slow():
     start = time.time()
     response = agent("Use slow_api to query database for 'customer records'")
     elapsed = time.time() - start
+    tokens = get_total_tokens(response)
 
     print(f"⏱️  {elapsed:.1f}s — agent waited full duration")
-    return {"time": elapsed, "status": "slow"}
+    print(f"💰 Tokens: {tokens:,} total")
+    return {"time": elapsed, "tokens": tokens, "status": "slow"}
 
 
 def run_test_3_failing():
@@ -85,12 +100,14 @@ def run_test_3_failing():
     try:
         response = agent("Use failing_api to connect to external service")
         elapsed = time.time() - start
+        tokens = get_total_tokens(response)
         print(f"⏱️  {elapsed:.1f}s")
-        return {"time": elapsed, "status": "error"}
+        print(f"💰 Tokens: {tokens:,} total")
+        return {"time": elapsed, "tokens": tokens, "status": "error"}
     except Exception as e:
         elapsed = time.time() - start
         print(f"❌ Error after {elapsed:.1f}s: {type(e).__name__}: {str(e)[:150]}")
-        return {"time": elapsed, "status": "error"}
+        return {"time": elapsed, "tokens": 0, "status": "error"}
 
 
 def run_test_4_async():
@@ -112,9 +129,11 @@ def run_test_4_async():
     response2 = agent("Use check_job_status to check the job that was just started")
     step2 = time.time() - start
     total = step1 + step2
+    tokens = get_total_tokens(response1) + get_total_tokens(response2)
     print(f"Step 2 — status in {step2:.1f}s  |  Total: {total:.1f}s")
+    print(f"💰 Tokens: {tokens:,} total (both steps)")
 
-    return {"time": total, "step1": step1, "status": "ok"}
+    return {"time": total, "step1": step1, "tokens": tokens, "status": "ok"}
 
 
 # ── Comparison ───────────────────────────────────────────────────────────────
@@ -134,12 +153,12 @@ if __name__ == "__main__":
     print("  COMPARISON")
     print("=" * 70)
 
-    print(f"\n  {'Scenario':<35} {'Time':>8}  UX")
-    print("  " + "-" * 55)
-    print(f"  {'1. Fast API (baseline)':<35} {r1['time']:>6.1f}s  ✅ Good")
-    print(f"  {'2. Slow API (problem)':<35} {r2['time']:>6.1f}s  ❌ Agent blocked")
-    print(f"  {'3. Failing API (424)':<35} {r3['time']:>6.1f}s  ❌ Error")
-    print(f"  {'4. Async handleId (solution)':<35} {r4['time']:>6.1f}s  ✅ Immediate")
+    print(f"\n  {'Scenario':<35} {'Time':>8} {'Tokens':>10}  UX")
+    print("  " + "-" * 66)
+    print(f"  {'1. Fast API (baseline)':<35} {r1['time']:>6.1f}s {r1['tokens']:>10,}  ✅ Good")
+    print(f"  {'2. Slow API (problem)':<35} {r2['time']:>6.1f}s {r2['tokens']:>10,}  ❌ Agent blocked")
+    print(f"  {'3. Failing API (424)':<35} {r3['time']:>6.1f}s {r3['tokens']:>10,}  ❌ Error")
+    print(f"  {'4. Async handleId (solution)':<35} {r4['time']:>6.1f}s {r4['tokens']:>10,}  ✅ Immediate")
 
     if r2["time"] > r4["time"]:
         improvement = r2["time"] - r4["time"]
@@ -147,5 +166,5 @@ if __name__ == "__main__":
         print(f"\n  → Async saved {improvement:.1f}s vs slow API ({pct:.0f}% faster)")
         print(f"  → First response in {r4.get('step1', 0):.1f}s — no timeout risk")
 
-    print(f"\n  Strands MCP Tools: https://strandsagents.com/latest/documentation/docs/user-guide/concepts/tools/mcp-tools/")
+    print(f"\n  Strands MCP Tools: https://strandsagents.com/docs/user-guide/concepts/tools/mcp-tools/")
     print(f"  Research: https://octopus.com/blog/mcp-timeout-retry")

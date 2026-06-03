@@ -45,6 +45,17 @@ def count_tool_calls(agent):
     return count
 
 
+def get_total_tokens(response):
+    """Extract total token usage from an agent result using Strands native metrics."""
+    # 📊 Token counting — Strands native metric (same for OpenAI, Bedrock, etc.).
+    # response.metrics.accumulated_usage sums ALL the LLM calls made during this task.
+    # totalTokens = input (prompt + system prompt + tools + history) + output (response).
+    # We check '.metrics' because it can be None if the provider does not report usage.
+    if response.metrics:
+        return response.metrics.accumulated_usage["totalTokens"]
+    return 0
+
+
 def run_scenario_1_ambiguous_loop():
     """
     Scenario 1: AMBIGUOUS FEEDBACK CAUSES LOOPS
@@ -70,15 +81,17 @@ def run_scenario_1_ambiguous_loop():
     response = agent(BUDGET_QUERY)
     elapsed = time.time() - start
     calls = count_tool_calls(agent)
+    tokens = get_total_tokens(response)
 
     print(f"\n⏱️  Time: {elapsed:.1f}s")
     print(f"🔧 Tool calls: {calls}")
+    print(f"💰 Tokens: {tokens:,} total")
     if calls > 4:
         print(f"⚠️  Agent made {calls} calls — ambiguous feedback caused retries")
     else:
         print("ℹ️  Agent stopped early this run (LLM behavior varies)")
 
-    return {"calls": calls, "blocked": 0, "time": elapsed}
+    return {"calls": calls, "blocked": 0, "time": elapsed, "tokens": tokens}
 
 
 def run_scenario_2_debounce_fix():
@@ -107,9 +120,11 @@ def run_scenario_2_debounce_fix():
     start = time.time()
     response = agent(BUDGET_QUERY)
     elapsed = time.time() - start
+    tokens = get_total_tokens(response)
 
     stats = debounce.get_stats()
     print(f"\n⏱️  Time: {elapsed:.1f}s")
+    print(f"💰 Tokens: {tokens:,} total")
     print(f"📊 Debounce Stats:")
     print(f"   Calls allowed: {stats['total_calls']}")
     print(f"   Calls blocked: {stats['blocked_calls']}")
@@ -118,7 +133,7 @@ def run_scenario_2_debounce_fix():
     else:
         print("✅ No duplicates this run — agent behaved correctly")
 
-    return {"calls": stats["total_calls"], "blocked": stats["blocked_calls"], "time": elapsed}
+    return {"calls": stats["total_calls"], "blocked": stats["blocked_calls"], "time": elapsed, "tokens": tokens}
 
 
 def run_scenario_3_clear_states():
@@ -146,12 +161,14 @@ def run_scenario_3_clear_states():
     response = agent(query)
     elapsed = time.time() - start
     calls = count_tool_calls(agent)
+    tokens = get_total_tokens(response)
 
     print(f"\n⏱️  Time: {elapsed:.1f}s")
     print(f"🔧 Tool calls: {calls}")
+    print(f"💰 Tokens: {tokens:,} total")
     print("✅ SUCCESS states — agent completed in minimal calls")
 
-    return {"calls": calls, "blocked": 0, "time": elapsed}
+    return {"calls": calls, "blocked": 0, "time": elapsed, "tokens": tokens}
 
 
 def run_scenario_4_hard_limits():
@@ -186,13 +203,15 @@ def run_scenario_4_hard_limits():
     start = time.time()
     response = agent(query)
     elapsed = time.time() - start
+    tokens = get_total_tokens(response)
 
     print(f"\n⏱️  Time: {elapsed:.1f}s")
+    print(f"💰 Tokens: {tokens:,} total")
     print(f"📊 Tool counts: {limit_hook.tool_counts}")
     blocked = max(0, sum(limit_hook.tool_counts.values()) - sum(limit_hook.max_tool_counts.values()))
     print("✅ LimitToolCounts enforced hard ceiling — no runaway costs")
 
-    return {"calls": sum(limit_hook.tool_counts.values()), "blocked": blocked, "time": elapsed}
+    return {"calls": sum(limit_hook.tool_counts.values()), "blocked": blocked, "time": elapsed, "tokens": tokens}
 
 
 if __name__ == "__main__":
@@ -222,15 +241,16 @@ if __name__ == "__main__":
     print("\n" + "=" * 70)
     print("  RESULTS SUMMARY")
     print("=" * 70)
-    print(f"\n  {'Scenario':<35} {'Calls':>6} {'Blocked':>8} {'Time':>7}")
-    print("  " + "-" * 58)
+    print(f"\n  {'Scenario':<35} {'Calls':>6} {'Blocked':>8} {'Time':>7} {'Tokens':>10}")
+    print("  " + "-" * 70)
     for key, name, _ in scenarios:
         r = results.get(key, {})
         calls = r.get("calls", "?")
         blocked = r.get("blocked", 0)
         elapsed = r.get("time", 0)
+        tokens = r.get("tokens", 0)
         label = name.split("(")[0].strip()
-        print(f"  {label:<35} {calls:>6} {blocked:>8} {elapsed:>6.1f}s")
+        print(f"  {label:<35} {calls:>6} {blocked:>8} {elapsed:>6.1f}s {tokens:>10,}")
 
     print(f"\n  Key findings:")
     s1 = results.get("ambiguous", {})
@@ -241,4 +261,4 @@ if __name__ == "__main__":
     if s4.get("blocked", 0) > 0:
         print(f"  • LimitToolCounts blocked {s4['blocked']} calls — hard ceiling enforced")
     print(f"\n  All solutions use Strands Hooks — no external libraries.")
-    print(f"  https://strandsagents.com/latest/documentation/docs/user-guide/concepts/agents/hooks/")
+    print(f"  https://strandsagents.com/docs/user-guide/concepts/agents/hooks/")

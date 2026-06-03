@@ -49,7 +49,7 @@ The MCP server also includes an `unresponsive_api` (300s, never completes) to de
 - Python 3.9+
 - OpenAI API key
 
-> You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) for configuration.
+> You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/docs/user-guide/concepts/model-providers/) for configuration.
 
 ### Installation
 
@@ -152,12 +152,72 @@ The agent gets an immediate response and can poll, do other work, or inform the 
 
 ---
 
+## 🔄 Use Amazon Bedrock or Anthropic
+
+These demos use OpenAI by default, but the token-counting and hook patterns work the same with any [Strands model provider](https://strandsagents.com/docs/user-guide/concepts/model-providers/). To switch, replace the `OpenAIModel(...)` line where `MODEL` is defined.
+
+### Option A — Amazon Bedrock
+
+Bedrock uses `boto3` (the AWS SDK), so **no extra package is required** — it ships with Strands.
+
+```python
+from strands.models import BedrockModel
+
+MODEL = BedrockModel(
+    model_id="us.anthropic.claude-sonnet-4-20250514-v1:0",
+    region_name="us-east-1",
+)
+```
+
+**How to get AWS credentials for Bedrock:**
+
+1. **Create an AWS account** if you don't have one: https://aws.amazon.com/free
+2. **Install the AWS CLI**: see the [official install guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+3. **Create access keys** in the AWS Console under **IAM → Users → Security credentials → Create access key** (choose "Command Line Interface").
+4. **Configure your credentials** locally:
+   ```bash
+   aws configure
+   # AWS Access Key ID:     <your-access-key-id>
+   # AWS Secret Access Key: <your-secret-access-key>
+   # Default region name:   us-east-1
+   ```
+   This stores credentials in `~/.aws/credentials`. Strands and `boto3` pick them up automatically — no API key in code.
+5. **Enable model access**: in the [Amazon Bedrock console](https://console.aws.amazon.com/bedrock/), go to **Model access** and request access to the model you plan to use (e.g. Anthropic Claude). Approval is usually immediate.
+6. **Ensure your IAM user/role allows** `bedrock:InvokeModel` and `bedrock:InvokeModelWithResponseStream`.
+
+> Already using AWS SSO, an EC2/Lambda role, or environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`)? Those work too — `boto3` resolves credentials from the standard [credential chain](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html).
+
+Docs: [Strands · Amazon Bedrock](https://strandsagents.com/docs/user-guide/concepts/model-providers/amazon-bedrock/)
+
+### Option B — Anthropic (direct API)
+
+Requires the `anthropic` extra:
+
+```bash
+uv pip install 'strands-agents[anthropic]'
+```
+
+```python
+import os
+from strands.models.anthropic import AnthropicModel
+
+MODEL = AnthropicModel(
+    client_args={"api_key": os.getenv("ANTHROPIC_API_KEY")},
+    model_id="claude-sonnet-4-6",
+    max_tokens=1028,
+)
+```
+
+Get an API key at https://console.anthropic.com/. Docs: [Strands · Anthropic](https://strandsagents.com/docs/user-guide/concepts/model-providers/anthropic/)
+
+---
+
 ## 📚 References
 
 - [Resilient AI Agents With MCP](https://octopus.com/blog/mcp-timeout-retry) — Octopus, May 2025
 - [Call remote MCP server tool timed out, error 424](https://community.openai.com/t/call-remote-mcp-server-tool-timed-out-resulting-in-error-424/1364167) — OpenAI Community
-- [Strands MCP Tools](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/tools/mcp-tools/) — Connect any MCP server with MCPClient
-- [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) — Swap to Amazon Bedrock, Anthropic, Ollama
+- [Strands MCP Tools](https://strandsagents.com/docs/user-guide/concepts/tools/mcp-tools/) — Connect any MCP server with MCPClient
+- [Strands Model Providers](https://strandsagents.com/docs/user-guide/concepts/model-providers/) — Swap to Amazon Bedrock, Anthropic, Ollama
 - [Strands Agents Documentation](https://strandsagents.com) — Full framework docs
 
 ---

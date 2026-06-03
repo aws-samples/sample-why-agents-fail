@@ -53,7 +53,7 @@ python --version
 export OPENAI_API_KEY="your-key-here"
 ```
 
-> You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) for configuration.
+> You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/docs/user-guide/concepts/model-providers/) for configuration.
 
 ### Installation
 
@@ -141,7 +141,7 @@ def analyze_error_patterns(logs_pointer: str, tool_context: ToolContext) -> str:
 
 ## 🐝 Swarm Multi-Agent Demo
 
-The same Memory Pointer Pattern works across multiple agents using [Strands Swarm](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/swarm/). Three specialized agents coordinate autonomously, sharing data via `invocation_state`:
+The same Memory Pointer Pattern works across multiple agents using [Strands Swarm](https://strandsagents.com/docs/user-guide/concepts/multi-agent/swarm/). Three specialized agents coordinate autonomously, sharing data via `invocation_state`:
 
 ```
 Collector → Analyzer → Reporter
@@ -154,7 +154,7 @@ Collector → Analyzer → Reporter
          (145KB+, shared)
 ```
 
-All tools use `@tool(context=True)` + `ToolContext` to access `invocation_state` — the official Strands API for [multi-agent data sharing](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/multi-agent-patterns/):
+All tools use `@tool(context=True)` + `ToolContext` to access `invocation_state` — the official Strands API for [multi-agent data sharing](https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/):
 
 ```python
 from strands import Agent, tool, ToolContext
@@ -291,24 +291,67 @@ After completing this demo, you will understand:
 
 ---
 
-## 🔧 Customization
+## 🔄 Use Amazon Bedrock or Anthropic
 
-### Change Model Provider
+These demos use OpenAI by default, but the token-counting and hook patterns work the same with any [Strands model provider](https://strandsagents.com/docs/user-guide/concepts/model-providers/). To switch, replace the `OpenAIModel(...)` line where `MODEL` is defined.
+
+### Option A — Amazon Bedrock
+
+Bedrock uses `boto3` (the AWS SDK), so **no extra package is required** — it ships with Strands.
 
 ```python
-# Use Amazon Bedrock instead of OpenAI
-from strands.models.bedrock import BedrockModel
+from strands.models import BedrockModel
 
-agent = Agent(
-    model=BedrockModel(
-        model_id="anthropic.claude-3-haiku-20240307-v1:0",
-        region="us-east-1"
-    ),
-    tools=[...]
+MODEL = BedrockModel(
+    model_id="us.anthropic.claude-sonnet-4-20250514-v1:0",
+    region_name="us-east-1",
 )
 ```
 
-See [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) for all options.
+**How to get AWS credentials for Bedrock:**
+
+1. **Create an AWS account** if you don't have one: https://aws.amazon.com/free
+2. **Install the AWS CLI**: see the [official install guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+3. **Create access keys** in the AWS Console under **IAM → Users → Security credentials → Create access key** (choose "Command Line Interface").
+4. **Configure your credentials** locally:
+   ```bash
+   aws configure
+   # AWS Access Key ID:     <your-access-key-id>
+   # AWS Secret Access Key: <your-secret-access-key>
+   # Default region name:   us-east-1
+   ```
+   This stores credentials in `~/.aws/credentials`. Strands and `boto3` pick them up automatically — no API key in code.
+5. **Enable model access**: in the [Amazon Bedrock console](https://console.aws.amazon.com/bedrock/), go to **Model access** and request access to the model you plan to use (e.g. Anthropic Claude). Approval is usually immediate.
+6. **Ensure your IAM user/role allows** `bedrock:InvokeModel` and `bedrock:InvokeModelWithResponseStream`.
+
+> Already using AWS SSO, an EC2/Lambda role, or environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`)? Those work too — `boto3` resolves credentials from the standard [credential chain](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html).
+
+Docs: [Strands · Amazon Bedrock](https://strandsagents.com/docs/user-guide/concepts/model-providers/amazon-bedrock/)
+
+### Option B — Anthropic (direct API)
+
+Requires the `anthropic` extra:
+
+```bash
+uv pip install 'strands-agents[anthropic]'
+```
+
+```python
+import os
+from strands.models.anthropic import AnthropicModel
+
+MODEL = AnthropicModel(
+    client_args={"api_key": os.getenv("ANTHROPIC_API_KEY")},
+    model_id="claude-sonnet-4-6",
+    max_tokens=1028,
+)
+```
+
+Get an API key at https://console.anthropic.com/. Docs: [Strands · Anthropic](https://strandsagents.com/docs/user-guide/concepts/model-providers/anthropic/)
+
+---
+
+## 🔧 Customization
 
 ### Adjust Log Size
 
@@ -340,9 +383,9 @@ def your_custom_tool(data_pointer: str, tool_context: ToolContext) -> str:
 - [Context Window Limits Explained](https://airbyte.com/agentic-data/context-window-limit) — Airbyte, Dec 2025
 
 ### Strands Documentation
-- [Agent State](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/agents/state/) — ToolContext and agent.state
-- [Conversation Management](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/agents/conversation-management/) — Sliding window and context overflow
-- [Swarm](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/swarm/) — Multi-agent orchestration
+- [Agent State](https://strandsagents.com/docs/user-guide/concepts/agents/state/) — ToolContext and agent.state
+- [Conversation Management](https://strandsagents.com/docs/user-guide/concepts/agents/conversation-management/) — Sliding window and context overflow
+- [Swarm](https://strandsagents.com/docs/user-guide/concepts/multi-agent/swarm/) — Multi-agent orchestration
 
 ---
 

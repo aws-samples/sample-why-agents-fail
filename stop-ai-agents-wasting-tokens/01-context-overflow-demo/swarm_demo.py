@@ -12,8 +12,8 @@ The Swarm handles handoffs and coordination automatically.
 
 Collector → Analyzer → Reporter
 
-See: https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/swarm/
-See: https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/multi-agent-patterns/
+See: https://strandsagents.com/docs/user-guide/concepts/multi-agent/swarm/
+See: https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/
 """
 import os
 os.environ['OTEL_SDK_DISABLED'] = 'true'
@@ -42,6 +42,30 @@ if not os.getenv("OPENAI_API_KEY"):
     )
 
 MODEL = OpenAIModel(model_id="gpt-4o-mini")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# How to switch the model provider (token counting works the same on all of them).
+#
+# Amazon Bedrock — uses boto3, NO extra package needed.
+#   Requires configured AWS credentials and model access enabled in the
+#   Amazon Bedrock console.
+#       from strands.models import BedrockModel
+#       MODEL = BedrockModel(
+#           model_id="us.anthropic.claude-sonnet-4-20250514-v1:0",
+#           region_name="us-east-1",
+#       )
+#   Docs: https://strandsagents.com/docs/user-guide/concepts/model-providers/amazon-bedrock/
+#
+# Anthropic (direct API) — requires:  pip install 'strands-agents[anthropic]'
+#   The API key goes inside client_args (get one at https://console.anthropic.com/).
+#       from strands.models.anthropic import AnthropicModel
+#       MODEL = AnthropicModel(
+#           client_args={"api_key": os.getenv("ANTHROPIC_API_KEY")},
+#           model_id="claude-sonnet-4-6",
+#           max_tokens=1028,
+#       )
+#   Docs: https://strandsagents.com/docs/user-guide/concepts/model-providers/anthropic/
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 # ── Agents ───────────────────────────────────────────────────────────
@@ -89,11 +113,25 @@ if __name__ == "__main__":
 
     result = swarm("Fetch 6 hours of logs for payment-service, analyze errors and latency, then generate an incident report.")
 
+    # 📊 Token counting in a Swarm: each agent has its OWN metrics.
+    # We iterate over result.results (collector → analyzer → reporter) and sum
+    # each one's accumulated_usage to see the TOTAL cost of the multi-agent system.
+    # accumulated_usage is the Strands native metric (same for OpenAI, Bedrock, etc.).
+    swarm_tokens = {"input": 0, "output": 0, "total": 0}
+    for _node_id, node_result in result.results.items():
+        if node_result.result.metrics:
+            usage = node_result.result.metrics.accumulated_usage
+            swarm_tokens["input"] += usage["inputTokens"]
+            swarm_tokens["output"] += usage["outputTokens"]
+            swarm_tokens["total"] += usage["totalTokens"]
+
     print(f"\n{'=' * 60}")
     print(f"  Status: {result.status}")
     print(f"  Agents: {' → '.join(n.node_id for n in result.node_history)}")
     print(f"  Iterations: {result.execution_count}")
     print(f"  Time: {result.execution_time}ms")
+    print(f"  💰 Tokens (all agents): {swarm_tokens['input']} in, "
+          f"{swarm_tokens['output']} out, {swarm_tokens['total']} total")
     print("=" * 60)
     print("\n  ✅ 145KB+ of logs processed by 3 agents")
     print("  ✅ Data flowed via invocation_state (ToolContext)")

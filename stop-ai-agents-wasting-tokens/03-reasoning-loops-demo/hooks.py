@@ -5,7 +5,7 @@ Uses Strands Hooks API:
 - BeforeInvocationEvent to reset state per invocation
 - LimitToolCounts pattern from Strands Hooks Cookbook
 
-See: https://strandsagents.com/latest/documentation/docs/user-guide/concepts/agents/hooks/
+See: https://strandsagents.com/docs/user-guide/concepts/agents/hooks/
 """
 
 from threading import Lock
@@ -61,7 +61,7 @@ class LimitToolCounts(HookProvider):
     """Limits the number of times tools can be called per invocation.
 
     From Strands Hooks Cookbook — prevents runaway tool usage.
-    See: https://strandsagents.com/latest/documentation/docs/user-guide/concepts/agents/hooks/
+    See: https://strandsagents.com/docs/user-guide/concepts/agents/hooks/
     """
 
     def __init__(self, max_tool_counts: dict[str, int]):

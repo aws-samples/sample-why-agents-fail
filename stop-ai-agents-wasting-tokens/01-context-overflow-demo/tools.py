@@ -16,8 +16,8 @@ State store used depends on the agent architecture:
            detect_latency_swarm, generate_report_swarm, get_error_details_swarm
 
 See:
-  https://strandsagents.com/latest/documentation/docs/user-guide/concepts/agents/state/
-  https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/multi-agent-patterns/
+  https://strandsagents.com/docs/user-guide/concepts/agents/state/
+  https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/
 """
 
 from strands import tool, ToolContext
