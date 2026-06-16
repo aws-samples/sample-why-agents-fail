@@ -1,4 +1,8 @@
-strands-agents[openai]>=1.27.0
+strands-agents[openai]>=1.44.0
 strands-agents-tools>=0.1.0
 python-dotenv>=1.0.0
 jupyter>=1.0.0
+
+# Optional — only needed for the AgentCore production section (setup_agentcore_s3.ipynb)
+# bedrock-agentcore[strands-agents]>=1.14.1
+# bedrock-agentcore-starter-toolkit>=0.3.9

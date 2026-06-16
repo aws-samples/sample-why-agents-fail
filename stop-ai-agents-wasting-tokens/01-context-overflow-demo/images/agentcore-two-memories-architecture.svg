@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1480" height="820" viewBox="0 0 1480 820" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif">
+  <!-- Production: Two Kinds of Memory on Amazon Bedrock AgentCore -->
+  <!-- AWS service colors: AgentCore/Bedrock teal #01A88D, Amazon S3 green #3F8624, IAM red #DD344C -->
+  <defs>
+    <marker id="aTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#01A88D"/>
+    </marker>
+    <marker id="aTealStart" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M10 0 L0 5 L10 10 z" fill="#01A88D"/>
+    </marker>
+    <marker id="aGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3F8624"/>
+    </marker>
+    <marker id="aGreenStart" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M10 0 L0 5 L10 10 z" fill="#3F8624"/>
+    </marker>
+    <marker id="aRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#DD344C"/>
+    </marker>
+    <marker id="aBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3F51B5"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1480" height="820" fill="#FAFAFA"/>
+
+  <!-- Title -->
+  <text x="740" y="44" text-anchor="middle" font-size="27" font-weight="700" fill="#232F3E">Production: Two Kinds of Memory on Amazon Bedrock AgentCore</text>
+  <text x="740" y="72" text-anchor="middle" font-size="16" font-style="italic" fill="#6B6B6B">One agent, two separate memories &#8212; conversation = semantic recall, data = exact reference</text>
+
+  <!-- ===== External client ===== -->
+  <rect x="30" y="360" width="118" height="96" rx="10" fill="#232F3E"/>
+  <text x="89" y="398" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">User /</text>
+  <text x="89" y="418" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Client</text>
+  <text x="89" y="472" text-anchor="middle" font-size="11" fill="#5A6573">passes actor_id</text>
+  <text x="89" y="487" text-anchor="middle" font-size="11" fill="#5A6573">via custom header</text>
+
+  <!-- ===== AWS Cloud container ===== -->
+  <rect x="185" y="110" width="1270" height="640" rx="6" fill="none" stroke="#232F3E" stroke-width="2"/>
+  <rect x="185" y="110" width="150" height="30" rx="6" fill="#232F3E"/>
+  <text x="208" y="131" font-size="14" font-weight="700" fill="#FFFFFF">AWS Cloud</text>
+
+  <!-- ===== AgentCore Runtime container ===== -->
+  <rect x="225" y="200" width="470" height="360" rx="12" fill="#F2FBF9" stroke="#01A88D" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <text x="460" y="228" text-anchor="middle" font-size="15" font-weight="700" fill="#01884F">Amazon Bedrock AgentCore Runtime</text>
+  <text x="460" y="248" text-anchor="middle" font-size="12" font-style="italic" fill="#3A7A66">the agent code runs inside the Runtime</text>
+
+  <!-- Bedrock model tile -->
+  <rect x="252" y="280" width="180" height="86" rx="10" fill="#01A88D"/>
+  <text x="342" y="318" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Amazon Bedrock</text>
+  <text x="342" y="340" text-anchor="middle" font-size="13" fill="#E6FBF4">Claude model</text>
+
+  <!-- Agent tools group -->
+  <rect x="462" y="270" width="208" height="120" rx="10" fill="#FFFFFF" stroke="#9AA5B1" stroke-width="1.4"/>
+  <text x="472" y="288" font-size="12" font-style="italic" fill="#5A6573">Agent tools</text>
+  <rect x="478" y="298" width="176" height="34" rx="7" fill="#FFF8E8" stroke="#FFB347" stroke-width="1.4"/>
+  <text x="566" y="320" text-anchor="middle" font-size="12" fill="#7A4A00">fetch_application_logs</text>
+  <rect x="478" y="342" width="176" height="34" rx="7" fill="#FFF8E8" stroke="#FFB347" stroke-width="1.4"/>
+  <text x="566" y="364" text-anchor="middle" font-size="12" fill="#7A4A00">count_errors_by_service</text>
+
+  <!-- Wiring note -->
+  <rect x="252" y="420" width="418" height="118" rx="10" fill="#EFF6F4" stroke="#01A88D" stroke-width="1.4" stroke-dasharray="5 4"/>
+  <text x="461" y="444" text-anchor="middle" font-size="12" font-weight="700" fill="#155F49">How the two memories are wired</text>
+  <text x="461" y="470" text-anchor="middle" font-size="12" fill="#155F49"><tspan font-family="monospace">AgentCoreMemorySessionManager</tspan>  &#8594; conversation</text>
+  <text x="461" y="492" text-anchor="middle" font-size="12" fill="#155F49"><tspan font-family="monospace">ContextOffloader + S3Storage</tspan>  &#8594; data</text>
+  <text x="461" y="518" text-anchor="middle" font-size="11.5" font-style="italic" fill="#3A7A66">conversation scoped by actor_id from the request header</text>
+
+  <!-- ===== Conversation memory: AgentCore Memory (top right) ===== -->
+  <rect x="850" y="170" width="560" height="200" rx="12" fill="#F2FBF9" stroke="#01A88D" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <text x="1130" y="198" text-anchor="middle" font-size="15" font-weight="700" fill="#01884F">Conversation memory &#8212; SEMANTIC recall</text>
+
+  <rect x="876" y="222" width="206" height="120" rx="10" fill="#01A88D"/>
+  <text x="979" y="262" text-anchor="middle" font-size="13.5" font-weight="700" fill="#FFFFFF">Amazon Bedrock</text>
+  <text x="979" y="282" text-anchor="middle" font-size="13.5" font-weight="700" fill="#FFFFFF">AgentCore Memory</text>
+  <text x="979" y="312" text-anchor="middle" font-size="12" fill="#E6FBF4">turns &#183; preferences</text>
+  <text x="979" y="330" text-anchor="middle" font-size="12" fill="#E6FBF4">&#183; extracted facts</text>
+
+  <rect x="1100" y="222" width="290" height="120" rx="10" fill="#FFFFFF" stroke="#01A88D" stroke-width="1.4"/>
+  <text x="1245" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="#155F49">RetrieveMemoryRecords</text>
+  <text x="1245" y="278" text-anchor="middle" font-size="12" fill="#155F49">embeddings &#183; top_k</text>
+  <text x="1245" y="298" text-anchor="middle" font-size="12" fill="#155F49">&#183; relevance_score</text>
+  <text x="1245" y="324" text-anchor="middle" font-size="12" font-style="italic" fill="#3A7A66">recall the most similar memory</text>
+
+  <!-- ===== Context/data memory: Amazon S3 (bottom right) ===== -->
+  <rect x="850" y="410" width="560" height="200" rx="12" fill="#F3FAEE" stroke="#3F8624" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <text x="1130" y="438" text-anchor="middle" font-size="15" font-weight="700" fill="#356E1E">Context / data memory &#8212; EXACT reference</text>
+
+  <rect x="876" y="462" width="206" height="120" rx="10" fill="#3F8624"/>
+  <text x="979" y="510" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Amazon S3</text>
+  <text x="979" y="538" text-anchor="middle" font-size="12" fill="#EAF6E2">large tool outputs</text>
+  <text x="979" y="556" text-anchor="middle" font-size="12" fill="#EAF6E2">(logs, datasets)</text>
+
+  <rect x="1100" y="462" width="290" height="120" rx="10" fill="#FFFFFF" stroke="#3F8624" stroke-width="1.4"/>
+  <text x="1245" y="492" text-anchor="middle" font-size="13" font-weight="700" fill="#2E5E1A">recalled by exact reference</text>
+  <text x="1245" y="518" text-anchor="middle" font-size="12.5" font-family="monospace" fill="#2E5E1A">s3://bucket/key</text>
+  <text x="1245" y="544" text-anchor="middle" font-size="12" fill="#2E5E1A">via</text>
+  <text x="1245" y="562" text-anchor="middle" font-size="11.5" font-family="monospace" fill="#2E5E1A">ContextOffloader(S3Storage)</text>
+
+  <!-- ===== Execution role ===== -->
+  <rect x="372" y="630" width="190" height="92" rx="10" fill="#DD344C"/>
+  <text x="467" y="664" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Runtime execution role</text>
+  <text x="467" y="690" text-anchor="middle" font-size="11.5" fill="#FCE2E6">IAM principal that</text>
+  <text x="467" y="707" text-anchor="middle" font-size="11.5" fill="#FCE2E6">reads/writes the S3 bucket</text>
+
+  <!-- ===== Edges ===== -->
+  <!-- client -> runtime (invoke) -->
+  <path d="M 148 408 L 225 408" fill="none" stroke="#3F51B5" stroke-width="2.5" marker-end="url(#aBlue)"/>
+  <rect x="150" y="378" width="72" height="22" rx="6" fill="#FAFAFA"/>
+  <text x="186" y="394" text-anchor="middle" font-size="11.5" font-weight="700" fill="#3F51B5">invoke</text>
+
+  <!-- runtime -> AgentCore Memory (semantic, teal, bidirectional) -->
+  <path d="M 695 300 L 772 300 L 772 270 L 850 270" fill="none" stroke="#01A88D" stroke-width="2.5" marker-end="url(#aTeal)" marker-start="url(#aTealStart)"/>
+  <rect x="700" y="240" width="150" height="22" rx="6" fill="#FAFAFA"/>
+  <text x="775" y="256" text-anchor="middle" font-size="11.5" font-weight="700" fill="#01884F">store &amp; semantic recall</text>
+
+  <!-- runtime -> S3 (exact, green, bidirectional) -->
+  <path d="M 695 470 L 772 470 L 772 510 L 850 510" fill="none" stroke="#3F8624" stroke-width="2.5" marker-end="url(#aGreen)" marker-start="url(#aGreenStart)"/>
+  <rect x="700" y="478" width="150" height="22" rx="6" fill="#FAFAFA"/>
+  <text x="775" y="494" text-anchor="middle" font-size="11.5" font-weight="700" fill="#356E1E">offload &amp; exact fetch</text>
+
+  <!-- execution role -> S3 (red dashed) -->
+  <path d="M 562 676 L 1130 676 L 1130 610" fill="none" stroke="#DD344C" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#aRed)"/>
+  <rect x="790" y="665" width="190" height="22" rx="6" fill="#FAFAFA"/>
+  <text x="885" y="681" text-anchor="middle" font-size="11.5" font-weight="700" fill="#DD344C">grants S3 read/write</text>
+
+  <!-- ===== Bottom takeaway / legend ===== -->
+  <rect x="185" y="762" width="1270" height="44" rx="10" fill="#FFFFFF" stroke="#9AA5B1" stroke-width="1.2"/>
+  <circle cx="232" cy="784" r="7" fill="#01A88D"/>
+  <text x="248" y="789" font-size="13" fill="#232F3E"><tspan font-weight="700">Conversation = semantic</tspan> (AgentCore Memory)</text>
+  <circle cx="640" cy="784" r="7" fill="#3F8624"/>
+  <text x="656" y="789" font-size="13" fill="#232F3E"><tspan font-weight="700">Data = exact id</tspan> (Amazon S3, s3://bucket/key)</text>
+  <circle cx="1090" cy="784" r="7" fill="#DD344C"/>
+  <text x="1106" y="789" font-size="13" fill="#232F3E"><tspan font-weight="700">IAM execution role</tspan> grants S3 access</text>
+</svg>

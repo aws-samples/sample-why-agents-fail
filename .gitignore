@@ -55,3 +55,22 @@ agents-times-out/
 test-play/
 05-meta-tooling-demo/
 .claude
+CLAUDE.md
+blog-es/
+
+# CDK
+cdk.out/
+
+# Deployment packages (built artifacts, not source)
+deployment_package/
+deployment_package.zip
+**/lambda_tools/**/package/
+
+# Bedrock AgentCore starter toolkit — generated per-deploy, not source
+.bedrock_agentcore.yaml
+.bedrock_agentcore/
+Dockerfile
+.dockerignore
+
+# ContextOffloader local artifacts
+artifacts/

@@ -10,7 +10,7 @@ Three technical demos that validate research papers with working code examples u
 
 | 📓 Demo | 🎯 Research Validated | ⏱️ Time | 📊 Results |
 |---------|----------------------|----------|-----------|
-| **[01 - Context Window Overflow](01-context-overflow-demo/)** | IBM Research: "Solving Context Window Overflow" | 30 min | Memory Pointer Pattern — large data stays outside context |
+| **[01 - Context Window Overflow](01-context-overflow-demo/)** | IBM Research: "Solving Context Window Overflow" | 30 min | Memory Pointer Pattern (manual + native `ContextOffloader`), plus an AgentCore production path |
 | **[02 - MCP Tools Not Responding](02-mcp-timeout-demo/)** | Octopus: "Resilient AI Agents With MCP" | 20 min | 424 errors reproduced, async handleId solution |
 | **[03 - Reasoning Loops](03-reasoning-loops-demo/)** | The Decoder: "Language models can overthink" | 25 min | Duplicate calls blocked via DebounceHook |
 
@@ -24,26 +24,37 @@ Three technical demos that validate research papers with working code examples u
 
 **Key Finding:** "Indivisible data blocks (logs, documents) cause context overflow when they can't be split"
 
-**Validated:**
-- ✅ 214KB log data causes context overflow
-- ✅ Memory Pointer Pattern reduces tokens by 7x
-- ✅ 600 events processed via pointer instead of full context
-- ✅ Custom context windows and per-turn limits work
+**Validated (measured in this demo):**
+- ✅ Manual Memory Pointer Pattern (`agent.state`) keeps large data out of context
+- ✅ Native `ContextOffloader` plugin: baseline ≈18–20K tokens → ≈490 tokens (~97% fewer), same query
+- ✅ Real Amazon S3 offload: 83KB dataset stored in S3, ~486 tokens left in context, recovered by exact reference
+- ✅ Production path on AgentCore Runtime: two memories (AgentCore Memory + S3), deployed and invoked end to end
 
-**Key Technique:** Store large data outside context, return pointers
+**Key Technique:** Store large tool outputs outside the context window — by hand (`agent.state`) or natively (`ContextOffloader`); recall by exact reference.
 
 ![Without Memory Pointer vs Memory Pointer Pattern](images/Without-Memory-Pointer.jpg)
 
 ![Token usage by context strategy](images/context-overflow-tokens.png)
 
+The demo covers three stages, from first principles to production:
+
 ```python
+# 1. Manual — the pattern by hand: tool stores data, returns a pointer
 @tool(context=True)
 def fetch_application_logs(app_name: str, tool_context: ToolContext, hours: int = 24) -> str:
     logs = generate_logs(hours)                        # Large dataset (~230KB)
-    pointer = f"logs-{app_name}"
-    tool_context.agent.state.set(pointer, logs)        # Stored outside context
-    return f"Data stored at: {pointer}"                # ~50 tokens returned to LLM
+    tool_context.agent.state.set(f"logs-{app_name}", logs)   # Stored outside context
+    return f"Data stored at: logs-{app_name}"          # ~50 tokens returned to LLM
+
+# 2. Native — the framework does it: ordinary tools + the ContextOffloader plugin
+agent = Agent(model=MODEL, tools=[fetch_application_logs],
+              plugins=[ContextOffloader(storage=FileStorage("./artifacts"))])
+
+# 3. One-line default for multi-turn agents
+agent = Agent(model=MODEL, tools=[...], context_manager="auto")
 ```
+
+In production, two distinct memories: **AgentCore Memory** for the conversation (semantic recall) and **Amazon S3** for large tool outputs (exact-reference recall). See the [demo README](01-context-overflow-demo/).
 
 ---
 
@@ -130,7 +141,7 @@ class DebounceHook(HookProvider):
 - OpenAI API key (or Amazon Bedrock, Anthropic, Ollama) — get one at https://platform.openai.com/api-keys
 - `OPENAI_API_KEY` environment variable (a setting that tells your system where to find your API credentials)
 
-> You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) for configuration.
+> You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/docs/user-guide/concepts/model-providers/) for configuration.
 
 ### Run Any Demo
 
@@ -225,7 +236,7 @@ Contributions are welcome! See [CONTRIBUTING](CONTRIBUTING.md) for more informat
 
 ## Security
 
-If you discover a potential security issue in this project, notify AWS/Amazon Security via the [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public GitHub issue.
+If you discover a potential security issue in this project, notify AWS/Amazon Security via the [vulnerability reporting page](https://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public GitHub issue.
 
 ---
 

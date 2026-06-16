@@ -1,0 +1,67 @@
+# Manual vs Native Memory Pointer Pattern (side by side)
+# Palette: RED #F28B82  GREEN #5FBFA4
+# Render: d2 native-context-offloader-flow.d2 native-context-offloader-flow.svg
+
+vars: {
+  d2-config: {
+    pad: 30
+  }
+}
+
+# two panels side by side via grid; each panel stacks its nodes vertically
+grid-columns: 2
+grid-gap: 80
+
+# ── MANUAL (left) ──
+manual: MANUAL {
+  direction: down
+  style: {
+    stroke: "#F28B82"
+    stroke-width: 3
+    fill: "#FFF5F4"
+    border-radius: 16
+    font-size: 20
+    bold: true
+    font-color: "#C0392B"
+  }
+
+  tool: "tool stores data\n+ returns pointer" {
+    style: {stroke: "#C0392B"; fill: "#FFFFFF"; font-color: "#2B2B2B"; border-radius: 10; stroke-width: 2}
+  }
+  next: "next tool reads\nagent.state[pointer]" {
+    style: {stroke: "#C0392B"; fill: "#FFFFFF"; font-color: "#2B2B2B"; border-radius: 10; stroke-width: 2}
+  }
+  tool -> next: "you wire it,\nin every tool" {
+    style: {stroke: "#C0392B"; stroke-width: 2; stroke-dash: 4; font-color: "#C0392B"; bold: true}
+  }
+}
+
+# ── NATIVE (right) ──
+native: NATIVE  ·  ContextOffloader {
+  direction: down
+  style: {
+    stroke: "#5FBFA4"
+    stroke-width: 3
+    fill: "#F2FBF8"
+    border-radius: 16
+    font-size: 20
+    bold: true
+    font-color: "#155F49"
+  }
+
+  tool: "ordinary tool\nreturns data" {
+    style: {stroke: "#2E7D32"; fill: "#FFFFFF"; font-color: "#2B2B2B"; border-radius: 10; stroke-width: 2}
+  }
+  plugin: "ContextOffloader\noffloads to storage" {
+    style: {stroke: "#2E7D32"; fill: "#E3F6EF"; font-color: "#155F49"; border-radius: 10; stroke-width: 2}
+  }
+  ctx: "context keeps\npreview + reference" {
+    style: {stroke: "#5FBFA4"; fill: "#E3F6EF"; font-color: "#155F49"; border-radius: 10; stroke-width: 2}
+  }
+  tool -> plugin: "large data" {
+    style: {stroke: "#5FBFA4"; stroke-width: 3; font-color: "#155F49"; bold: true}
+  }
+  plugin -> ctx {
+    style: {stroke: "#5FBFA4"; stroke-width: 3}
+  }
+}
