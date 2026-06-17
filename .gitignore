@@ -74,3 +74,6 @@ Dockerfile
 
 # ContextOffloader local artifacts
 artifacts/
+# Social media video assets (uploaded manually, not in repo)
+*.mp4
+*.gif
