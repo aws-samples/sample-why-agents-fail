@@ -17,8 +17,8 @@ This repository demonstrates research-backed techniques for preventing AI agent 
 | 🚨 Failure Mode | 💡 Solution Approach | 📊 Projects | ⏱️ Total Time |
 |----------------|---------------------|-------------|---------------|
 | **[Hallucinations](#-stop-ai-agent-hallucinations)** | Detection and mitigation through 4 techniques | 4 demos | 2 hours |
-| **[Getting Stuck](#-stop-agents-from-wasting-tokens)** | Context overflow, MCP timeouts, reasoning loops | 3 demos | 1.5 hours |
-| **Memory Loss** | Persistent memory and context retrieval | Coming soon | - |
+| **[Getting Stuck](#-stop-agents-from-wasting-tokens)** | Conversation management, context overflow, MCP timeouts, reasoning loops | 4 demos | 1.75 hours |
+| **[Memory Loss](#-stop-agents-from-losing-memory)** | Memory decay, core memory pattern, semantic retrieval | 3 demos | 1.5 hours |
 
 ---
 
@@ -54,23 +54,36 @@ This repository demonstrates research-backed techniques for preventing AI agent 
 
 **The Problem**: Agents get stuck when context windows overflow with large data, MCP tools stop responding on slow APIs, or agents repeat the same tool calls without making progress — burning tokens and blocking workflows.
 
-**The Solution**: 3 research-backed techniques that prevent context overflow, handle unresponsive APIs, and detect reasoning loops before they waste resources.
+**The Solution**: start with built-in conversation management, then apply techniques that prevent context overflow, handle unresponsive APIs, and stop reasoning loops before they waste resources.
 
 ### 📓 Token Waste & Stuck Agent Demos
 
 | 📓 Demo | 🎯 Focus & Key Learning | ⏱️ Time | 📊 Level |
 |---------|------------------------|----------|----------|
-| **01 - [Context Window Overflow](stop-ai-agents-wasting-tokens/01-context-overflow-demo/)** | Memory management — Store large data outside context with Memory Pointer Pattern, 7x token reduction validated by IBM Research | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
+| **00 - [Conversation Management](stop-ai-agents-wasting-tokens/00-conversation-management-demo/)** | The built-in default — compare Strands' four conversation managers (None, Sliding Window, Summarization, Combination) on the same recall question; a one-line default before reaching for advanced patterns | 15 min | ![Beginner](https://img.shields.io/badge/-Beginner-green) |
+| **01 - [Context Window Overflow](stop-ai-agents-wasting-tokens/01-context-overflow-demo/)** | Memory management — store large data outside context with the Memory Pointer Pattern (manual `agent.state` + native `ContextOffloader`), recall by ID (~97% fewer context tokens in this demo; IBM Research reports ~7x on their workloads) | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
 | **02 - [MCP Tools Not Responding](stop-ai-agents-wasting-tokens/02-mcp-timeout-demo/)** | Async patterns — Handle slow/unresponsive APIs with async handleId, prevent 424 errors, immediate responses | 20 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
-| **03 - [Reasoning Loops](stop-ai-agents-wasting-tokens/03-reasoning-loops-demo/)** | Loop detection — DebounceHook blocks duplicate calls, clear SUCCESS/FAILED states stop retries, 7x fewer tool calls | 25 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
+| **03 - [Reasoning Loops](stop-ai-agents-wasting-tokens/03-reasoning-loops-demo/)** | Loop prevention — clear SUCCESS/FAILED tool states stop retries, `LimitToolCounts` (Strands Hooks Cookbook) enforces a hard call ceiling | 25 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
 
 **[→ Explore token waste prevention demos](stop-ai-agents-wasting-tokens/)**
 
 ---
 
-## Your Agent Doesn't Remember You
+## 🧠 Stop Agents from Losing Memory
 
-*(Coming soon)*
+**The Problem**: Agents forget user preferences between turns, treat returning users as strangers, and waste tokens loading irrelevant memories when context grows large.
+
+**The Solution**: 3 research-backed techniques that prevent memory decay, implement core memory for personalization, and retrieve only relevant memories at scale.
+
+### 📓 Memory Loss Prevention Demos
+
+| 📓 Demo | 🎯 Focus & Key Learning | ⏱️ Time | 📊 Level |
+|---------|------------------------|----------|----------|
+| **01 - [Memory Decay](stop-ai-agents-losing-memory/01-memory-decay-demo/)** | Persistent state — Compare stateless vs stateful agents, `agent.state` for preferences, `FileSessionManager` for cross-session persistence | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
+| **02 - [Core Memory Pattern](stop-ai-agents-losing-memory/02-core-memory-demo/)** | Structured memory — Agent-managed read/write/update tools (MIRIX/MemGPT pattern), memory evolution, cross-session persistence | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
+| **03 - [Memory Retrieval](stop-ai-agents-losing-memory/03-memory-retrieval-demo/)** | Smart retrieval — Dump-all vs keyword vs semantic search over 8 memory sections, 60-98% token savings | 25 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
+
+**[→ Explore memory loss prevention demos](stop-ai-agents-losing-memory/)**
 
 ---
 
@@ -100,7 +113,7 @@ This repository demonstrates research-backed techniques for preventing AI agent 
 - Basic understanding of AI agents and tool calling
 
 **Model Configuration:**
-All demos use OpenAI with GPT-4o-mini by default. You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/) for configuration.
+All demos use OpenAI with GPT-4o-mini by default. You can swap to any provider supported by Strands — see [Strands Model Providers](https://strandsagents.com/docs/user-guide/concepts/model-providers/) for configuration.
 
 **AWS Credentials Setup (if using Amazon Bedrock):**
 Follow the [AWS credentials configuration guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html?trk=87c4c426-cddf-4799-a299-273337552ad8&sc_channel=el) to configure your environment.
@@ -167,7 +180,7 @@ Contributions are welcome! See [CONTRIBUTING](CONTRIBUTING.md) for more informat
 
 ## Security
 
-If you discover a potential security issue in this project, notify AWS/Amazon Security via the [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public GitHub issue.
+If you discover a potential security issue in this project, notify AWS/Amazon Security via the [vulnerability reporting page](https://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public GitHub issue.
 
 ---
 
