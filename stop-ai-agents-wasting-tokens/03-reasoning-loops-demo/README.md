@@ -1,8 +1,10 @@
-# Stop AI Agent Reasoning Loops: Debounce Hooks and Hard Limits
+# Stop AI Agent Reasoning Loops: Clear States and Hard Limits
 
 **Problem:** AI agents get stuck calling the same tool repeatedly, burning tokens without delivering answers.
 
-**Solution:** Strands Hooks — DebounceHook detects duplicate calls, clear SUCCESS/FAILED states signal completion, and LimitToolCounts enforces hard ceilings.
+**Solution:** Clear SUCCESS/FAILED tool states signal completion, and `LimitToolCounts` (a recipe from the Strands Hooks Cookbook) enforces a hard ceiling on tool calls per invocation.
+
+> This demo uses Strands Agents. The same patterns — unambiguous tool results and a per-invocation call ceiling enforced by a lifecycle hook — are general agent concepts and carry over to other agent frameworks.
 
 Based on research:
 - [Language models can overthink](https://the-decoder.com/language-models-can-overthink-and-get-stuck-in-endless-thought-loops/) — The Decoder, Jan 2025
@@ -13,27 +15,27 @@ Based on research:
 
 ## 🎯 What This Demo Shows
 
-Four scenarios demonstrate why agents loop and how to stop them:
+Three scenarios demonstrate why agents loop and how to stop them:
 
 1. **Ambiguous Feedback** — Tools return "prices may change" → agent retries organically
-2. **DebounceHook** — Blocks duplicate calls with identical parameters
-3. **Clear SUCCESS States** — Tools return SUCCESS/FAILED → agent stops immediately
-4. **LimitToolCounts** — Hard ceiling on tool calls per invocation (Strands Cookbook)
+2. **Clear SUCCESS States** — Tools return SUCCESS/FAILED → agent stops immediately
+3. **LimitToolCounts** — Hard ceiling on tool calls per invocation (Strands Cookbook)
 
-![Ambiguous Tool Feedback vs DebounceHook + Clear States comparison](../images/Ambiguous-Tool-Feedback.jpg)
+![Ambiguous Tool Feedback vs Clear States and Hard Limits comparison](../images/Ambiguous-Tool-Feedback.png)
 
 ---
 
 ## 📊 Demo Results
 
+Representative values from one run of `test_reasoning_loops.py` on `gpt-4o-mini`. Counts vary per run because tool prices are randomized and LLM behavior is non-deterministic — re-run to reproduce.
+
 | Scenario | Tool Calls | Time | Result |
 |----------|-----------|------|--------|
-| Ambiguous Feedback | 14 | ~21s | Agent retried organically |
-| DebounceHook | 12 | ~15s | Reduced retries |
-| Clear SUCCESS States | 2 | ~4s | **7x fewer calls** |
-| LimitToolCounts | 6 (2 blocked) | ~6s | Hard ceiling enforced |
+| Ambiguous Feedback | ~6 | ~7s | Agent retried organically |
+| Clear SUCCESS States | 2 | ~2s | Agent stopped on SUCCESS |
+| LimitToolCounts | 6 (2 blocked) | ~5s | Hard ceiling enforced |
 
-**Key finding:** Ambiguous tools caused 14 calls. Clear SUCCESS states reduced it to 2 calls — a 7x improvement.
+**Key finding:** Ambiguous tools drove several redundant retries; clear SUCCESS states let the agent stop in 2 calls, and `LimitToolCounts` caps the total regardless of how many times the model tries.
 
 ![Tool calls allowed vs blocked by strategy](../images/reasoning-loops-calls.png)
 
@@ -67,16 +69,29 @@ OPENAI_API_KEY=your-key-here
 uv run python test_reasoning_loops.py
 ```
 
+### Try it interactively
+
+Two chats let you watch the difference live — same ambiguous tools, the only change is the hook:
+
+```bash
+uv run python chat_loop.py      # no protection — tool calls pile up
+uv run python chat_guarded.py   # LimitToolCounts caps the calls (🚫 Limit reached!)
+```
+
+Ask both `Find me the cheapest flight from NYC to Paris under $400 and a hotel under $200/night`, then type `exit`.
+
 ---
 
 ## 📁 Files
 
 | File | Purpose |
 |------|---------|
-| `test_reasoning_loops.py` | Main demo — 4 scenarios with real metrics |
+| `test_reasoning_loops.py` | Main demo — 3 scenarios with real metrics |
 | `tools.py` | Ambiguous tools (cause loops) vs clear-state tools (prevent loops) |
-| `hooks.py` | DebounceHook + LimitToolCounts (from Strands Cookbook) |
+| `hooks.py` | `LimitToolCounts` — the Strands Hooks Cookbook recipe, copied verbatim |
 | `test_reasoning_loops.ipynb` | Interactive notebook |
+| `chat_loop.py` | Interactive chat with no loop protection (the problem) |
+| `chat_guarded.py` | Interactive chat with `LimitToolCounts` attached (the fix) |
 | `requirements.txt` | Dependencies |
 
 ---
@@ -97,7 +112,7 @@ def search_flights(origin: str, destination: str, max_price: float) -> str:
     )
 ```
 
-The agent sees "More results may be available" and retries. In our demo, this caused **14 tool calls** for a single query.
+The agent sees "More results may be available" and retries. In our demo runs, this drove several redundant tool calls for a single query (the exact count varies per run).
 
 ### Clear States Stop Loops
 
@@ -111,47 +126,24 @@ def book_hotel(hotel: str, guest: str, nights: int) -> str:
     return f"FAILED: {hotel} fully booked"
 ```
 
-The agent receives `"SUCCESS: Booking HT79265 confirmed"` and stops. **2 tool calls total** (flight + hotel).
-
-### Strands Hooks Block Duplicates
-
-```python
-from strands.hooks import HookProvider, BeforeToolCallEvent
-
-class DebounceHook(HookProvider):
-    def check_duplicate(self, event):
-        key = (event.tool_use["name"], str(event.tool_use["input"]))
-        recent = self.call_history[-self.window_size:]
-        
-        if recent.count(key) >= 2:
-            event.cancel_tool = "BLOCKED: Duplicate call detected"
-            return
-        
-        self.call_history.append(key)
-
-agent = Agent(tools=[search_flights], hooks=[DebounceHook()])
-```
-
-Uses [`BeforeToolCallEvent.cancel_tool`](https://strandsagents.com/docs/user-guide/concepts/agents/hooks/) — a native Strands API that prevents tool execution and returns an error message to the LLM.
-
-![How DebounceHook works — flow diagram](../images/How-DebounceHook-Works.jpg)
+The agent receives `"SUCCESS: Booking HT79265 confirmed"` and stops — typically **2 tool calls** (flight + hotel), no retries.
 
 ### Hard Limits with LimitToolCounts
 
-From the [Strands Hooks Cookbook](https://strandsagents.com/docs/user-guide/concepts/agents/hooks/):
+`LimitToolCounts` is the official recipe from the [Strands Hooks Cookbook](https://strandsagents.com/docs/user-guide/concepts/agents/hooks/) (see the **Cookbook → Limit Tool Counts** section). Strands does not ship it as an importable class — the Cookbook shows the code so you copy it into your project. Our `hooks.py` is that recipe, verbatim:
 
 ```python
 from hooks import LimitToolCounts
 
 limit_hook = LimitToolCounts(max_tool_counts={
-    "search_flights": 2,
-    "check_hotel_price": 2,
+    "search_flights": 3,
+    "check_hotel_price": 3,
 })
 
 agent = Agent(tools=[search_flights, check_hotel_price], hooks=[limit_hook])
 ```
 
-Even if the agent wants to search 10 times, it's capped at 2. Hard ceiling, predictable costs.
+It registers on `BeforeInvocationEvent` (to reset counts each invocation) and `BeforeToolCallEvent` (to count and cancel). Even if the agent wants to search 10 times, once a tool passes its ceiling the next call is cancelled via [`event.cancel_tool`](https://strandsagents.com/docs/user-guide/concepts/agents/hooks/) — a native Strands API that blocks the tool and returns a message to the LLM. Hard ceiling, predictable costs, regardless of LLM behavior.
 
 ---
 
@@ -234,7 +226,7 @@ Get an API key at https://console.anthropic.com/. Docs: [Strands · Anthropic](h
 
 **No loops detected** — LLM behavior varies. The "persistent agent" prompt increases retry likelihood.
 
-**Hook not blocking** — Verify hook is registered: `Agent(..., hooks=[debounce])`
+**Hook not blocking** — Verify the hook is registered: `Agent(..., hooks=[limit_hook])`
 
 ---
 

@@ -1,0 +1,104 @@
+# Four built-in conversation-management strategies
+# Palette: RED #F28B82  GREEN #5FBFA4  BLUE #7BB3F0
+# Render: d2 conversation-management-strategies.d2 conversation-management-strategies.svg
+
+vars: {
+  d2-config: {
+    pad: 30
+  }
+}
+
+grid-columns: 2
+grid-gap: 70
+
+# ── NONE (baseline) ──
+none: None · baseline {
+  direction: down
+  style: {
+    stroke: "#9AA0A6"
+    stroke-width: 3
+    fill: "#F5F6F7"
+    border-radius: 16
+    font-size: 20
+    bold: true
+    font-color: "#5F6368"
+  }
+  keep: "keep the full history\nnothing is dropped" {
+    style: {stroke: "#5F6368"; fill: "#FFFFFF"; font-color: "#2B2B2B"; border-radius: 10; stroke-width: 2}
+  }
+  cost: "remembers everything\nbut tokens grow every turn" {
+    style: {stroke: "#9AA0A6"; fill: "#F5F6F7"; font-color: "#5F6368"; border-radius: 10; stroke-width: 2}
+  }
+  keep -> cost {style: {stroke: "#9AA0A6"; stroke-width: 3}}
+}
+
+# ── SLIDING WINDOW ──
+sliding: Sliding Window {
+  direction: down
+  style: {
+    stroke: "#F28B82"
+    stroke-width: 3
+    fill: "#FFF5F4"
+    border-radius: 16
+    font-size: 20
+    bold: true
+    font-color: "#C0392B"
+  }
+  keep: "keep only the\nlast k messages" {
+    style: {stroke: "#C0392B"; fill: "#FFFFFF"; font-color: "#2B2B2B"; border-radius: 10; stroke-width: 2}
+  }
+  drop: "oldest turns dropped\nearly facts are lost" {
+    style: {stroke: "#C0392B"; fill: "#FDECEA"; font-color: "#C0392B"; border-radius: 10; stroke-width: 2}
+  }
+  keep -> drop: "cheap, but forgets" {
+    style: {stroke: "#C0392B"; stroke-width: 2; stroke-dash: 4; font-color: "#C0392B"; bold: true}
+  }
+}
+
+# ── SUMMARIZATION ──
+summary: Summarization {
+  direction: down
+  style: {
+    stroke: "#7BB3F0"
+    stroke-width: 3
+    fill: "#F0F6FE"
+    border-radius: 16
+    font-size: 20
+    bold: true
+    font-color: "#1A5FB4"
+  }
+  old: "summarize older\nmessages into facts" {
+    style: {stroke: "#1A5FB4"; fill: "#FFFFFF"; font-color: "#2B2B2B"; border-radius: 10; stroke-width: 2}
+  }
+  ctx: "compact context\nkeeps the key facts" {
+    style: {stroke: "#7BB3F0"; fill: "#E5F0FD"; font-color: "#1A5FB4"; border-radius: 10; stroke-width: 2}
+  }
+  old -> ctx: "one summary call" {
+    style: {stroke: "#7BB3F0"; stroke-width: 3; font-color: "#1A5FB4"; bold: true}
+  }
+}
+
+# ── COMBINATION ──
+combo: Combination · recommended default {
+  direction: down
+  style: {
+    stroke: "#5FBFA4"
+    stroke-width: 3
+    fill: "#F2FBF8"
+    border-radius: 16
+    font-size: 20
+    bold: true
+    font-color: "#155F49"
+  }
+  old: "summary of\nolder messages" {
+    style: {stroke: "#2E7D32"; fill: "#E3F6EF"; font-color: "#155F49"; border-radius: 10; stroke-width: 2}
+  }
+  recent: "recent messages\nkept verbatim" {
+    style: {stroke: "#2E7D32"; fill: "#FFFFFF"; font-color: "#2B2B2B"; border-radius: 10; stroke-width: 2}
+  }
+  ctx: "compact AND\nstill remembers" {
+    style: {stroke: "#5FBFA4"; fill: "#E3F6EF"; font-color: "#155F49"; border-radius: 10; stroke-width: 2}
+  }
+  old -> ctx: "+" {style: {stroke: "#5FBFA4"; stroke-width: 3; font-color: "#155F49"; bold: true}}
+  recent -> ctx {style: {stroke: "#5FBFA4"; stroke-width: 3}}
+}

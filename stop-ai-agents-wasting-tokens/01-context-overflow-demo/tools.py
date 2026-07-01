@@ -152,6 +152,58 @@ def detect_latency_anomalies(logs_pointer: str, tool_context: ToolContext, perce
     return json.dumps({"total_requests": len(logs), "p95_latency_ms": p_value, "anomalies_count": len(anomalies), "anomalies": anomalies[:20]}, indent=2)
 
 
+@tool(context=True)
+def recall_logs_by_id(logs_pointer: str, tool_context: ToolContext, sample: int = 3) -> str:
+    """Recall a stored log dataset by its memory pointer ID.
+
+    Reads the full dataset back from agent.state using the pointer ID and returns a
+    bounded preview — the total event count plus a small sample — that proves the data
+    was recalled, without dumping the entire dataset into the context window.
+
+    Use this when the user asks to "show", "give me", or "get" the logs for a memory ID.
+
+    Args:
+        logs_pointer: Memory pointer ID (e.g. 'logs-api-gateway')
+        sample: Number of sample events to include in the preview (default 3)
+    """
+    logs = tool_context.agent.state.get(logs_pointer)
+    if not logs:
+        return (
+            f"No data found for memory ID '{logs_pointer}'. "
+            "Call list_memory_pointers to see the available IDs."
+        )
+
+    total = len(logs)
+    n = max(0, sample)
+    return json.dumps({
+        "memory_id": logs_pointer,
+        "total_events_recalled": total,
+        "sample_events": logs[:n],
+        "note": (
+            f"Recalled {total:,} events from agent.state by ID '{logs_pointer}'. "
+            f"Only these {min(n, total)} sample events entered the context window — "
+            "the full dataset stayed out of context."
+        ),
+    }, indent=2)
+
+
+@tool(context=True)
+def list_memory_pointers(tool_context: ToolContext) -> str:
+    """List the memory pointer keys currently stored in agent.state.
+
+    Use this to see which large datasets are available for recall by their ID,
+    without loading the data itself into the context window. Returns each
+    pointer key and its size in bytes.
+    """
+    state = tool_context.agent.state.get()  # entire state dict (stays out of context)
+    keys = [k for k in state.keys()] if state else []
+    if not keys:
+        return "No memory pointers stored yet. Fetch logs first to create one."
+
+    lines = [f"{k} ({len(json.dumps(state[k])):,} bytes)" for k in keys]
+    return "Stored memory pointers (recall any by its ID):\n" + "\n".join(lines)
+
+
 @tool
 def generate_incident_report(error_analysis: str, latency_analysis: str) -> str:
     """Generate incident report from error and latency analysis results.

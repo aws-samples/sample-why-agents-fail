@@ -25,7 +25,7 @@ An AI agent processes application logs to detect errors and anomalies:
 
 ---
 
-![Without Memory Pointer vs Memory Pointer Pattern comparison](../images/Without-Memory-Pointer.jpg)
+![Without Memory Pointer vs Memory Pointer Pattern comparison](../images/Without-Memory-Pointer.png)
 
 ## 📊 Four Scenarios Demonstrated
 
@@ -70,14 +70,15 @@ uv run python test_context_overflow.py
 # Native Memory Pointer Pattern (ContextOffloader + context_manager="auto")
 uv run python test_native_pointer.py
 
-# Native pattern, offloading to REAL Amazon S3 (needs AWS credentials)
-AWS_PROFILE=<your-profile> uv run python test_s3_offload_local.py
-
 # Multi-agent Swarm demo (Collector → Analyzer → Reporter)
 uv run python swarm_demo.py
 
 # Quick test
 uv run python quick_test.py
+
+# Interactive chats — naive (raw JSON in context) vs pointer (recall by ID)
+uv run python chat_naive.py
+uv run python chat_pointer.py
 
 # Jupyter notebooks
 # Manual:  test_context_overflow.ipynb        Native:  test_native_pointer.ipynb
@@ -97,10 +98,8 @@ uv run python quick_test.py
 | `native_tools.py` | **Native** pattern — ordinary log tools, no pointer logic inside them |
 | `test_native_pointer.py` | Native demo: no management vs `ContextOffloader` vs `context_manager="auto"` |
 | `test_native_pointer.ipynb` | Interactive native-pattern notebook |
-| `test_s3_offload_local.py` | Offload to **real Amazon S3** while running locally (needs AWS credentials) |
-| `agentcore_production.py` | AgentCore Runtime entry point — two memories (AgentCore Memory + S3) |
-| `setup_agentcore_s3.ipynb` | Provision bucket + role + Memory and deploy to AgentCore (boto3, idempotent) |
-| `agent_requirements.txt` | Container dependencies for the AgentCore Runtime deploy |
+| `chat_naive.py` | Interactive chat — raw JSON floods the context (the problem) |
+| `chat_pointer.py` | Interactive chat — data in `agent.state`, recalled by pointer ID (the fix) |
 | `swarm_demo.py` | Multi-agent Swarm demo (Collector → Analyzer → Reporter) |
 | `test_multiagent_context_overflow.ipynb` | Interactive Swarm notebook with follow-up investigation |
 | `quick_test.py` | Quick smoke test |
@@ -190,7 +189,7 @@ The plugin registers a `retrieve_offloaded_content(reference)` tool, so the agen
 | Analysis tool | Receives `logs_pointer`, calls `agent.state.get()` | Ordinary function — no pointer logic |
 | Who offloads | You, inside every tool | The `ContextOffloader` plugin, outside the tools |
 | Retrieval | Read `agent.state` by key | `retrieve_offloaded_content(reference)` — by exact reference |
-| Storage | In-process RAM | `InMemoryStorage`, `FileStorage`, or `S3Storage` |
+| Storage | In-process RAM | `InMemoryStorage` or `FileStorage` (local disk) |
 
 > **Offloader is the safety net; selective tools are the win.** `ContextOffloader` guarantees a large result won't flood context. But the biggest savings come from pairing it with a **selective tool** (like `count_errors_by_service`, which computes the answer server-side and returns a small summary). Without a selective tool, an agent that needs the full dataset will just call `retrieve_offloaded_content` and bring it all back.
 
@@ -205,106 +204,6 @@ agent = Agent(model=MODEL, tools=[...], context_manager="auto")
 This composes (with benchmark-validated defaults) a `SummarizingConversationManager` (summarizes old history with proactive compression) **plus** a `ContextOffloader` (in-memory). Any `conversation_manager` or `plugins` you pass take precedence.
 
 > **Measured in this demo** (same query, `gpt-4o-mini`, 2h of logs): no management ≈ 18–20K tokens in context → `ContextOffloader` ≈ 490 tokens (~97% fewer) → `context_manager="auto"` ≈ 1K tokens. Numbers vary per run because log data is randomized; re-run `test_native_pointer.py` to reproduce.
-
----
-
-## 🪣 Offload to Real Amazon S3 (Run Locally)
-
-`FileStorage` writes to disk; `S3Storage` writes to a real S3 bucket. Swapping the backend is the only change — the agent still runs on your machine, but large tool outputs now live in S3, recalled by exact reference.
-
-**Run it** (needs AWS credentials — see [Run on AWS](#-run-on-aws) below):
-
-```bash
-AWS_PROFILE=<your-profile> uv run python test_s3_offload_local.py
-```
-
-The script creates a private bucket if one doesn't exist (idempotent), runs the agent, and shows what landed in S3:
-
-```
-📊 Tokens left in LLM context:  486
-📦 Objects offloaded to S3:     1
-   s3://agent-context-offload-<account>-us-east-1/log-artifacts/...  (82,952 bytes)
-```
-
-An ~83KB log dataset stayed in S3; only ~486 tokens reached the model. Same plugin, different backend — this is the step before production.
-
----
-
-## ☁️ Taking It to Production: Two Kinds of Memory
-
-A production agent has **two distinct memory needs**, and they are not the same store:
-
-![Production architecture on Amazon Bedrock AgentCore: an agent in AgentCore Runtime with conversation memory in AgentCore Memory recalled by semantic similarity, and data memory in Amazon S3 recalled by exact reference, with the execution role granting S3 access](images/agentcore-two-memories-architecture.png)
-
-| Memory | What it holds | Backend | Recalled by |
-|--------|---------------|---------|-------------|
-| **Conversation** | Turns, user preferences, extracted facts | [AgentCore Memory](https://aws.amazon.com/bedrock/agentcore/) | **Semantic** similarity (`RetrieveMemoryRecords`: embeddings, `top_k`, relevance) |
-| **Context / data** | Large tool outputs (logs, datasets, documents) | Amazon S3 via `ContextOffloader(S3Storage(...))` | **Exact reference** (`s3://bucket/key`) |
-
-**Why logs go to S3, not AgentCore Memory:** AgentCore Memory recalls the *semantically most similar* memory. For a log dataset you don't want "the most similar logs" — you want **that exact dataset back, byte for byte, by id**. That's object-storage semantics, not conversational recall. Keeping the two memories separate is what makes the design clean.
-
-```python
-from strands import Agent
-from strands.vended_plugins.context_offloader import ContextOffloader, S3Storage
-from bedrock_agentcore.memory.integrations.strands.session_manager import AgentCoreMemorySessionManager
-
-agent = Agent(
-    model=MODEL,
-    tools=[fetch_application_logs, count_errors_by_service],
-    session_manager=AgentCoreMemorySessionManager(memory_config, region_name=REGION),  # conversation
-    plugins=[ContextOffloader(S3Storage(bucket=CONTEXT_BUCKET, prefix="log-artifacts/"))],  # data
-)
-```
-
-The only change from local to production is the storage backend: `FileStorage("./artifacts")` → `S3Storage(bucket=...)`.
-
-**Deploy and run it** — open `setup_agentcore_s3.ipynb` and run the cells. The notebook is idempotent (reuses existing resources) and does everything end to end:
-
-1. Creates the S3 bucket (private).
-2. Creates the AgentCore **execution role** with S3 read/write on that bucket — this is how the Runtime gets permission to offload data.
-3. Creates the AgentCore **Memory** resource (`STM_AND_LTM`).
-4. Deploys `agentcore_production.py` to AgentCore Runtime with the starter toolkit.
-5. Invokes the agent across two turns.
-
-Requires `bedrock-agentcore[strands-agents]`, `bedrock-agentcore-starter-toolkit`, and AWS credentials. No Docker needed — the starter toolkit builds the agent in the cloud with AWS CodeBuild.
-
-> **Execution-role gotcha (verified by deploying).** The [official AgentCore Runtime execution-role policy](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-permissions.html) assumes an agent *without* conversation memory. An agent that uses AgentCore Memory also needs **Memory data-plane** permissions (`bedrock-agentcore:ListEvents`, `CreateEvent`, `RetrieveMemoryRecords`, …) on the memory resource — the Strands session manager calls them to read and write the conversation. Without them the Runtime returns a 500 (`AccessDenied` on `ListEvents` in CloudWatch). The notebook's role includes these.
-
----
-
-## 🔑 Run on AWS
-
-The S3 and AgentCore demos need an AWS account and credentials. The local `test_native_pointer.py` (FileStorage) does **not** — start there if you just want to see the pattern.
-
-### 1. Create an AWS account
-
-If you don't have one: [aws.amazon.com/free](https://aws.amazon.com/free). New accounts include a free tier; the S3 storage in this demo is a few KB and costs effectively nothing.
-
-### 2. Create credentials
-
-In the AWS Console: **IAM → Users → your user → Security credentials → Create access key** → choose **Command Line Interface (CLI)**.
-
-### 3. Configure them locally
-
-Install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), then:
-
-```bash
-aws configure
-# AWS Access Key ID:     <your-access-key-id>
-# AWS Secret Access Key: <your-secret-access-key>
-# Default region name:   us-east-1
-```
-
-Prefer a named profile? `aws configure --profile my-profile`, then pass `AWS_PROFILE=my-profile` when running the scripts. Strands and `boto3` pick credentials up automatically from the standard [credential chain](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html) — no keys in code.
-
-### 4. What each demo needs
-
-| Demo | AWS permissions |
-|------|-----------------|
-| `test_s3_offload_local.py` | S3 (`CreateBucket`, `GetObject`, `PutObject`, `ListBucket`) |
-| `setup_agentcore_s3.ipynb` | S3 + IAM (role) + `bedrock-agentcore` Memory/Runtime + Bedrock model access (build runs in CodeBuild — no Docker) |
-
-> For Bedrock-based runs, enable model access once in the [Amazon Bedrock console](https://console.aws.amazon.com/bedrock/) under **Model access** (e.g. Anthropic Claude). Approval is usually immediate.
 
 ---
 

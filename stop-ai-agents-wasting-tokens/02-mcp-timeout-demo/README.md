@@ -36,7 +36,7 @@ The MCP server also includes an `unresponsive_api` (300s, never completes) to de
 | **3. Failing API** | 424 after 5s | ~8s | ❌ Error |
 | **4. Async Pattern** | Immediate handle + poll | ~4s | ✅ Solution |
 
-![MCP response time patterns across all four scenarios](../images/MCP-Tool-Response-Patterns.jpg)
+![MCP response time patterns across all four scenarios](../images/MCP-Tool-Response-Patterns.png)
 
 ![MCP tool response time bar chart](../images/mcp-response-times.png)
 
@@ -70,6 +70,17 @@ OPENAI_API_KEY=your-key-here
 uv run python test_mcp_timeout.py
 ```
 
+### Try it interactively
+
+Two chats let you feel the difference — the MCP session stays open across turns:
+
+```bash
+uv run python chat_sync.py    # blocking calls: slow_api freezes ~15s, failing_api → 424
+uv run python chat_async.py   # start_long_job returns a handle ID instantly, poll by ID
+```
+
+In `chat_async.py`, start a job, then ask to check its status by the returned ID — you'll see it go from `PROCESSING` to `COMPLETED` without ever blocking the chat.
+
 ---
 
 ## 📁 Files
@@ -79,6 +90,8 @@ uv run python test_mcp_timeout.py
 | `mcp_server.py` | MCP server with 6 tools simulating timeout scenarios |
 | `test_mcp_timeout.py` | Main demo — runs 4 scenarios comparing problem vs solution |
 | `test_mcp_timeout.ipynb` | Interactive Jupyter notebook |
+| `chat_sync.py` | Interactive chat with synchronous (blocking) MCP tools |
+| `chat_async.py` | Interactive chat with the async handleId pattern (recall a job by ID) |
 | `requirements.txt` | Dependencies |
 
 ---
@@ -149,6 +162,8 @@ Async:        User → Agent → start_job → "handle: abc123" (instant)
 ```
 
 The agent gets an immediate response and can poll, do other work, or inform the user while the job processes in the background.
+
+> **A note on the token column.** In the results, the async scenario shows a *higher* token total than the blocking ones. That is expected and not a regression: the async pattern runs **two turns** (start the job, then poll for status), and the second turn re-sends the first turn's history as input. The single-turn scenarios only pay for one turn. **This demo optimizes latency, not tokens** — the win is the ~2s immediate response with no timeout risk, not a smaller bill. Token *reduction* is the story of [Demo 01: Context Overflow](../01-context-overflow-demo/).
 
 ---
 
@@ -236,7 +251,7 @@ Get an API key at https://console.anthropic.com/. Docs: [Strands · Anthropic](h
 
 1. ✅ Complete this demo
 2. ➡️ Try [Demo 01: Context Overflow](../01-context-overflow-demo/) — Memory Pointer Pattern
-3. ➡️ Try [Demo 03: Reasoning Loops](../03-reasoning-loops-demo/) — Debounce Hook
+3. ➡️ Try [Demo 03: Reasoning Loops](../03-reasoning-loops-demo/) — Clear states and hard limits
 
 ---
 

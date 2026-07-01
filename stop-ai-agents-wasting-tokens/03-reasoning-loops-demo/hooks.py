@@ -1,70 +1,32 @@
-"""Hooks for detecting and preventing reasoning loops (when agents repeatedly call the same tool without making progress).
+"""Hook for preventing reasoning loops (when agents repeatedly call the same tool).
 
-Uses Strands Hooks API:
-- BeforeToolCallEvent.cancel_tool to block duplicate calls
-- BeforeInvocationEvent to reset state per invocation
-- LimitToolCounts pattern from Strands Hooks Cookbook
+`LimitToolCounts` is the official recipe from the Strands Hooks Cookbook — copied
+here verbatim, not a custom class. Strands does not ship it as an importable symbol;
+the Cookbook shows the code so you paste it into your own project.
 
-See: https://strandsagents.com/docs/user-guide/concepts/agents/hooks/
+Recipe: https://strandsagents.com/docs/user-guide/concepts/agents/hooks/ (see "Cookbook → Limit Tool Counts")
 """
 
 from threading import Lock
 from strands.hooks import HookProvider, HookRegistry, BeforeToolCallEvent, BeforeInvocationEvent
 
 
-class DebounceHook(HookProvider):
-    """Detects and blocks duplicate tool calls in a sliding window.
-
-    Based on research: agents call the same tool repeatedly without progress.
-    Uses BeforeToolCallEvent.cancel_tool to prevent execution.
-    """
-
-    def __init__(self, window_size=3):
-        self._lock = Lock()
-        self.call_history = []
-        self.window_size = window_size
-        self.blocked_count = 0
-
-    def register_hooks(self, registry: HookRegistry) -> None:
-        registry.add_callback(BeforeInvocationEvent, self.reset)
-        registry.add_callback(BeforeToolCallEvent, self.check_duplicate)
-
-    def reset(self, event: BeforeInvocationEvent) -> None:
-        with self._lock:
-            self.call_history = []
-            self.blocked_count = 0
-
-    def check_duplicate(self, event: BeforeToolCallEvent) -> None:
-        key = (event.tool_use["name"], str(event.tool_use["input"]))
-        with self._lock:
-            recent = self.call_history[-self.window_size:]
-
-            count = recent.count(key)
-            if count >= 2:
-                self.blocked_count += 1
-                event.cancel_tool = f"BLOCKED: Duplicate call — {event.tool_use['name']} called {count} times with same input"
-                print(f"🚫 Loop detected! Blocked duplicate call to {event.tool_use['name']}")
-                return
-
-            self.call_history.append(key)
-
-    def get_stats(self):
-        with self._lock:
-            return {
-                "total_calls": len(self.call_history),
-                "blocked_calls": self.blocked_count,
-                "unique_calls": len(set(self.call_history)),
-            }
-
-
 class LimitToolCounts(HookProvider):
-    """Limits the number of times tools can be called per invocation.
+    """Limits the number of times tools can be called per agent invocation.
 
-    From Strands Hooks Cookbook — prevents runaway tool usage.
-    See: https://strandsagents.com/docs/user-guide/concepts/agents/hooks/
+    Official recipe from the Strands Hooks Cookbook. When a tool exceeds its limit,
+    subsequent calls are cancelled via BeforeToolCallEvent.cancel_tool, so the agent
+    cannot exceed the ceiling regardless of LLM behavior.
     """
 
     def __init__(self, max_tool_counts: dict[str, int]):
+        """Initializer.
+
+        Args:
+            max_tool_counts: A dictionary mapping tool names to max call counts for
+                tools. If a tool is not specified in it, the tool can be called as many
+                times as desired.
+        """
         self.max_tool_counts = max_tool_counts
         self.tool_counts = {}
         self._lock = Lock()

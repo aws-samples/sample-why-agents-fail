@@ -15,18 +15,16 @@ BLUE = "#7BB3F0"
 
 scenarios = [
     "Ambiguous Feedback\n(no hook)",
-    "DebounceHook\n(duplicate blocker)",
     "Clear SUCCESS\nStates",
     "LimitToolCounts\n(hard ceiling)",
 ]
 
 # Illustrative values based on demo behavior:
 # Scenario 1: agent retries same tool repeatedly — ~6 allowed, 0 blocked
-# Scenario 2: debounce blocks duplicates — ~3 allowed, 3 blocked
-# Scenario 3: SUCCESS state stops agent quickly — ~2 allowed, 0 blocked
-# Scenario 4: hard limit enforced — 2 allowed per tool, extras blocked
-allowed = [6, 3, 2, 4]
-blocked = [0, 3, 0, 2]
+# Scenario 2: SUCCESS state stops agent quickly — ~2 allowed, 0 blocked
+# Scenario 3: hard limit enforced — 3 allowed per tool, extras blocked
+allowed = [6, 2, 6]
+blocked = [0, 0, 2]
 
 x = np.arange(len(scenarios))
 width = 0.38
@@ -72,7 +70,7 @@ ax.legend(handles=legend_patches, loc="upper right", fontsize=11, framealpha=0.9
 
 ax.text(
     0.5, -0.12,
-    "Illustrative — actual counts vary by LLM run. DebounceHook and LimitToolCounts use Strands BeforeToolCallEvent.cancel_tool.",
+    "Illustrative — actual counts vary by LLM run. LimitToolCounts uses Strands BeforeToolCallEvent.cancel_tool.",
     transform=ax.transAxes, ha="center", fontsize=9, color="#666666",
 )
 

@@ -1,6 +1,0 @@
-# Dependencies bundled into the AgentCore Runtime container (agentcore_production.py).
-# Bedrock model → no OpenAI key needed in the container.
-strands-agents[otel]>=1.44.0
-bedrock-agentcore[strands-agents]>=1.14.1
-aws-opentelemetry-distro>=0.7.0
-boto3>=1.35.0

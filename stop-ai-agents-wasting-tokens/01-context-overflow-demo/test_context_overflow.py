@@ -16,6 +16,12 @@ import json
 import time
 import secrets
 from datetime import datetime, timedelta
+
+os.environ["OTEL_SDK_DISABLED"] = "true"
+import logging, warnings  # silence OpenTelemetry 'Failed to detach context' noise
+logging.getLogger("opentelemetry").setLevel(logging.CRITICAL)
+warnings.filterwarnings("ignore", message="Failed to detach context")
+
 from dotenv import load_dotenv
 from strands import Agent, tool
 # Using OpenAI-compatible interface via Strands SDK (not direct OpenAI usage)

@@ -12,6 +12,12 @@ and compares synchronous (problem) vs async handleId (solution).
 import os
 import sys
 import time
+
+os.environ["OTEL_SDK_DISABLED"] = "true"
+import logging, warnings  # silence OpenTelemetry 'Failed to detach context' noise
+logging.getLogger("opentelemetry").setLevel(logging.CRITICAL)
+warnings.filterwarnings("ignore", message="Failed to detach context")
+
 from dotenv import load_dotenv
 from strands import Agent
 # Using OpenAI-compatible interface via Strands SDK (not direct OpenAI usage)

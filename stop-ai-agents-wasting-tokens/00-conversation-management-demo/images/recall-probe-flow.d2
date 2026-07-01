@@ -1,0 +1,36 @@
+# The recall probe: one fact, buried by filler, then asked back under each strategy
+# Palette: RED #F28B82  GREEN #5FBFA4  BLUE #7BB3F0
+# Render: d2 recall-probe-flow.d2 recall-probe-flow.svg
+
+vars: {
+  d2-config: {
+    pad: 30
+  }
+}
+
+direction: right
+
+fact: "Turn 1\n\"deploy budget\nis \$500/month\"" {
+  style: {stroke: "#1A5FB4"; fill: "#F0F6FE"; font-color: "#1A5FB4"; border-radius: 12; stroke-width: 3; bold: true; font-size: 18}
+}
+
+filler: "11 filler turns\nbury the fact" {
+  style: {stroke: "#9AA0A6"; fill: "#F5F6F7"; font-color: "#5F6368"; border-radius: 12; stroke-width: 2; font-size: 16}
+}
+
+ask: "Ask:\n\"what is my\nbudget?\"" {
+  style: {stroke: "#5F6368"; fill: "#FFFFFF"; font-color: "#2B2B2B"; border-radius: 12; stroke-width: 2; bold: true; font-size: 18}
+}
+
+sliding: "Sliding Window\n\"unknown\"  ❌\n~113 tokens" {
+  style: {stroke: "#C0392B"; fill: "#FDECEA"; font-color: "#C0392B"; border-radius: 12; stroke-width: 3; bold: true; font-size: 16}
+}
+
+combo: "Combination\n\"\$500\"  ✅\n~295 tokens" {
+  style: {stroke: "#2E7D32"; fill: "#E3F6EF"; font-color: "#155F49"; border-radius: 12; stroke-width: 3; bold: true; font-size: 16}
+}
+
+fact -> filler {style: {stroke: "#9AA0A6"; stroke-width: 3}}
+filler -> ask {style: {stroke: "#9AA0A6"; stroke-width: 3}}
+ask -> sliding: "trimmed the fact" {style: {stroke: "#C0392B"; stroke-width: 3; font-color: "#C0392B"; bold: true; stroke-dash: 4}}
+ask -> combo: "kept the fact" {style: {stroke: "#2E7D32"; stroke-width: 3; font-color: "#155F49"; bold: true}}

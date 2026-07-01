@@ -54,4 +54,22 @@ hotel-faqs-extracted/
 test-play/
 05-meta-tooling-demo/
 
+# Blog drafts, reports, and content-authoring notes — never publish to the repo
 blog-series-times-out/
+blog-es/
+blog-devto*.md
+bar-raiser*.md
+*-report-*.md
+RESEARCH.md
+SEO-ANALYSIS.md
+STRANDS-SOLUTIONS.md
+TITLE-VARIATIONS.md
+
+# AgentCore / S3 production path — kept local, not published to the repo
+agentcore_production.py
+setup_agentcore_s3.ipynb
+agent_requirements.txt
+test_s3_offload_local.py
+**/*agentcore-two-memories-*
+**/two-memories-cover*
+**/*.drawio.bkp

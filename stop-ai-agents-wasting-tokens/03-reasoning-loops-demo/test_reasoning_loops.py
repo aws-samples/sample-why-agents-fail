@@ -7,13 +7,16 @@ Research:
 - "How to Prevent Infinite Loops" (CodiesHub, Dec 2025)
 
 Root causes: ambiguous tool feedback, no stopping criteria, no execution limits.
-Solutions: Strands Hooks — DebounceHook, LimitToolCounts, clear SUCCESS/FAILED states.
+Solutions: clear SUCCESS/FAILED tool states + LimitToolCounts (Strands Hooks Cookbook).
 """
 
 import os
 import time
 
 os.environ["OTEL_SDK_DISABLED"] = "true"
+import logging, warnings  # silence OpenTelemetry 'Failed to detach context' noise
+logging.getLogger("opentelemetry").setLevel(logging.CRITICAL)
+warnings.filterwarnings("ignore", message="Failed to detach context")
 
 from dotenv import load_dotenv
 
@@ -23,7 +26,7 @@ from strands import Agent
 # Using OpenAI-compatible interface via Strands SDK (not direct OpenAI usage)
 from strands.models.openai import OpenAIModel
 from tools import search_flights, check_hotel_price, book_flight, book_hotel
-from hooks import DebounceHook, LimitToolCounts
+from hooks import LimitToolCounts
 
 if not os.getenv("OPENAI_API_KEY"):
     raise ValueError(
@@ -33,6 +36,16 @@ if not os.getenv("OPENAI_API_KEY"):
     )
 
 MODEL = OpenAIModel(model_id="gpt-4o-mini")
+
+# Prompt that pushes the agent to retry when it can't find prices within budget —
+# this is what triggers organic loops in Scenario 1.
+PERSISTENT_PROMPT = (
+    "You are a persistent travel agent. Always try to find prices within the user's budget. "
+    "If results are over budget, search again — prices fluctuate and you might find better deals on retry."
+)
+
+# Query that triggers the organic loop in Scenario 1 (ambiguous feedback, no ceiling).
+BUDGET_QUERY = "Find me the cheapest flight from NYC to Paris under $400 and a hotel under $200/night for March 15"
 
 
 def count_tool_calls(agent):
@@ -94,57 +107,15 @@ def run_scenario_1_ambiguous_loop():
     return {"calls": calls, "blocked": 0, "time": elapsed, "tokens": tokens}
 
 
-def run_scenario_2_debounce_fix():
+def run_scenario_2_clear_states():
     """
-    Scenario 2: SAME QUERY + DEBOUNCE HOOK
-
-    Same ambiguous tools, same query — but DebounceHook blocks duplicate
-    calls with identical parameters.
-    """
-    print("\n" + "=" * 70)
-    print("SCENARIO 2: Same Query + DebounceHook — Loops Blocked")
-    print("=" * 70)
-    print("Solution: Strands BeforeToolCallEvent.cancel_tool\n")
-
-    debounce = DebounceHook(window_size=3)
-
-    agent = Agent(
-        model=MODEL,
-        system_prompt=PERSISTENT_PROMPT,
-        tools=[search_flights, check_hotel_price],
-        hooks=[debounce],
-    )
-
-    print(f"Query: {BUDGET_QUERY}\n")
-
-    start = time.time()
-    response = agent(BUDGET_QUERY)
-    elapsed = time.time() - start
-    tokens = get_total_tokens(response)
-
-    stats = debounce.get_stats()
-    print(f"\n⏱️  Time: {elapsed:.1f}s")
-    print(f"💰 Tokens: {tokens:,} total")
-    print(f"📊 Debounce Stats:")
-    print(f"   Calls allowed: {stats['total_calls']}")
-    print(f"   Calls blocked: {stats['blocked_calls']}")
-    if stats["blocked_calls"] > 0:
-        print("✅ DebounceHook prevented loop — duplicate calls blocked")
-    else:
-        print("✅ No duplicates this run — agent behaved correctly")
-
-    return {"calls": stats["total_calls"], "blocked": stats["blocked_calls"], "time": elapsed, "tokens": tokens}
-
-
-def run_scenario_3_clear_states():
-    """
-    Scenario 3: CLEAR SUCCESS STATES STOP LOOPS
+    Scenario 2: CLEAR SUCCESS STATES STOP LOOPS
 
     Booking tools return explicit SUCCESS/FAILED. The agent knows
     the task is done and stops immediately.
     """
     print("\n" + "=" * 70)
-    print("SCENARIO 3: Clear SUCCESS/FAILED States — Agent Stops")
+    print("SCENARIO 2: Clear SUCCESS/FAILED States — Agent Stops")
     print("=" * 70)
     print('Research: "Clear stopping criteria prevent loops"\n')
 
@@ -171,15 +142,15 @@ def run_scenario_3_clear_states():
     return {"calls": calls, "blocked": 0, "time": elapsed, "tokens": tokens}
 
 
-def run_scenario_4_hard_limits():
+def run_scenario_3_hard_limits():
     """
-    Scenario 4: HARD LIMITS WITH LimitToolCounts
+    Scenario 3: HARD LIMITS WITH LimitToolCounts
 
     Even with ambiguous tools, LimitToolCounts caps execution.
     From Strands Hooks Cookbook.
     """
     print("\n" + "=" * 70)
-    print("SCENARIO 4: Hard Limits — LimitToolCounts (Strands Cookbook)")
+    print("SCENARIO 3: Hard Limits — LimitToolCounts (Strands Cookbook)")
     print("=" * 70)
     print('Research: "Iterations, tokens, time are non-negotiable"\n')
 
@@ -224,9 +195,8 @@ if __name__ == "__main__":
 
     scenarios = [
         ("ambiguous", "Ambiguous Feedback (Problem)", run_scenario_1_ambiguous_loop),
-        ("debounce", "DebounceHook (Solution)", run_scenario_2_debounce_fix),
-        ("clear_states", "Clear SUCCESS States (Solution)", run_scenario_3_clear_states),
-        ("hard_limits", "LimitToolCounts (Hard Limits)", run_scenario_4_hard_limits),
+        ("clear_states", "Clear SUCCESS States (Solution)", run_scenario_2_clear_states),
+        ("hard_limits", "LimitToolCounts (Hard Limits)", run_scenario_3_hard_limits),
     ]
 
     for key, name, func in scenarios:
@@ -260,5 +230,5 @@ if __name__ == "__main__":
         print(f"  • Ambiguous tools: {s1.get('calls', '?')} calls vs Clear states: {s3.get('calls', '?')} calls")
     if s4.get("blocked", 0) > 0:
         print(f"  • LimitToolCounts blocked {s4['blocked']} calls — hard ceiling enforced")
-    print(f"\n  All solutions use Strands Hooks — no external libraries.")
+    print(f"\n  LimitToolCounts is the official recipe from the Strands Hooks Cookbook.")
     print(f"  https://strandsagents.com/docs/user-guide/concepts/agents/hooks/")
