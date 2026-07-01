@@ -4,7 +4,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/aws-samples/sample-why-agents-fail.svg?style=for-the-badge&logo=github&color=yellow)](https://github.com/aws-samples/sample-why-agents-fail/stargazers) [![License](https://img.shields.io/badge/License-MIT--0-blue.svg?style=for-the-badge)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.9+-green.svg?style=for-the-badge&logo=python)](https://python.org) [![AWS](https://img.shields.io/badge/AWS-Bedrock-orange.svg?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/bedrock/) [![Strands](https://img.shields.io/badge/🧬-Strands_Agents-blue.svg?style=for-the-badge)](https://strandsagents.com)
 
 
-*Research-backed solutions to the three critical failure modes that break AI agents in production: hallucinations, timeouts, and memory loss.*
+*Research-backed solutions to critical failure modes that break AI agents in production: hallucinations and token waste (context overflow, MCP timeouts, reasoning loops).*
 
 ⭐ **[Star this repository](https://github.com/aws-samples/sample-why-agents-fail)**
 
@@ -18,7 +18,6 @@ This repository demonstrates research-backed techniques for preventing AI agent 
 |----------------|---------------------|-------------|---------------|
 | **[Hallucinations](#-stop-ai-agent-hallucinations)** | Detection and mitigation through 4 techniques | 4 demos | 2 hours |
 | **[Getting Stuck](#-stop-agents-from-wasting-tokens)** | Conversation management, context overflow, MCP timeouts, reasoning loops | 4 demos | 1.75 hours |
-| **[Memory Loss](#-stop-agents-from-losing-memory)** | Memory decay, core memory pattern, semantic retrieval | 3 demos | 1.5 hours |
 
 ---
 
@@ -66,24 +65,6 @@ This repository demonstrates research-backed techniques for preventing AI agent 
 | **03 - [Reasoning Loops](stop-ai-agents-wasting-tokens/03-reasoning-loops-demo/)** | Loop prevention — clear SUCCESS/FAILED tool states stop retries, `LimitToolCounts` (Strands Hooks Cookbook) enforces a hard call ceiling | 25 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
 
 **[→ Explore token waste prevention demos](stop-ai-agents-wasting-tokens/)**
-
----
-
-## 🧠 Stop Agents from Losing Memory
-
-**The Problem**: Agents forget user preferences between turns, treat returning users as strangers, and waste tokens loading irrelevant memories when context grows large.
-
-**The Solution**: 3 research-backed techniques that prevent memory decay, implement core memory for personalization, and retrieve only relevant memories at scale.
-
-### 📓 Memory Loss Prevention Demos
-
-| 📓 Demo | 🎯 Focus & Key Learning | ⏱️ Time | 📊 Level |
-|---------|------------------------|----------|----------|
-| **01 - [Memory Decay](stop-ai-agents-losing-memory/01-memory-decay-demo/)** | Persistent state — Compare stateless vs stateful agents, `agent.state` for preferences, `FileSessionManager` for cross-session persistence | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
-| **02 - [Core Memory Pattern](stop-ai-agents-losing-memory/02-core-memory-demo/)** | Structured memory — Agent-managed read/write/update tools (MIRIX/MemGPT pattern), memory evolution, cross-session persistence | 30 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
-| **03 - [Memory Retrieval](stop-ai-agents-losing-memory/03-memory-retrieval-demo/)** | Smart retrieval — Dump-all vs keyword vs semantic search over 8 memory sections, 60-98% token savings | 25 min | ![Intermediate](https://img.shields.io/badge/-Intermediate-yellow) |
-
-**[→ Explore memory loss prevention demos](stop-ai-agents-losing-memory/)**
 
 ---
 
