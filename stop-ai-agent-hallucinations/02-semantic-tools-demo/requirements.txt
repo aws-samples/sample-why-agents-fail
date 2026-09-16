@@ -1,6 +1,10 @@
-strands-agents[openai]>=1.27.0
-sentence-transformers>=3.4.0
-faiss-cpu>=1.9.0
+# numpy>=2.0 is required: older pandas/faiss/sklearn wheels were built against
+# the NumPy 1.x C ABI and raise "numpy.dtype size changed" against NumPy 2.x.
+# Always install into a fresh per-demo venv (uv venv) to avoid mixing ABIs.
+numpy>=2.0
+strands-agents[openai]>=1.56.0
+sentence-transformers>=5.0.0
+faiss-cpu>=1.13.0
 neo4j>=5.28.0
 jupyter>=1.1.1
 ipykernel>=6.30.0
