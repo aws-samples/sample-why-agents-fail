@@ -10,13 +10,16 @@ inside your tools.
 This script runs the SAME query three ways and measures tokens in context:
 
   Test 1: No context management — raw JSON enters the LLM context (high tokens)
-  Test 2: ContextOffloader plugin (FileStorage) — large results offloaded to disk
-  Test 3: context_manager="auto" — one line composes Summarizing + ContextOffloader
+  Test 2: ContextOffloader plugin (LocalFileStorage) — large results offloaded to disk
+  Test 3: context_manager="auto" — one line that manages context for you
+  Test 4: External persistence — recover the offloaded data by reference from a
+          FRESH storage instance (a new session), and how to swap to S3
 
 This demo uses Strands Agents. The same context-management ideas (offloading large
 tool outputs, summarizing history) are general agent concepts and carry over to
 other agent frameworks.
 
+Requires strands-agents >= 1.56.0 (strands.storage API).
 Docs: https://strandsagents.com/docs/user-guide/concepts/context-management/
 """
 
@@ -31,7 +34,10 @@ from dotenv import load_dotenv
 from strands import Agent
 # Using OpenAI-compatible interface via Strands SDK (not direct OpenAI usage)
 from strands.models.openai import OpenAIModel
-from strands.vended_plugins.context_offloader import ContextOffloader, FileStorage
+# Strands 1.56+ storage backends live in strands.storage.
+# LocalFileStorage = local folder · S3Storage = durable + shared · InMemoryStorage = RAM.
+from strands.storage import LocalFileStorage, S3Storage
+from strands.vended_plugins.context_offloader import ContextOffloader
 
 from native_tools import fetch_application_logs, count_errors_by_service
 
@@ -106,7 +112,7 @@ def run_test_2_context_offloader():
     print("=" * 70)
     print(f"Query: {QUERY}\n")
 
-    storage = FileStorage(artifact_dir=ARTIFACT_DIR)
+    storage = LocalFileStorage(base_dir=ARTIFACT_DIR)
     agent = Agent(
         model=MODEL,
         tools=[fetch_application_logs, count_errors_by_service],
@@ -151,8 +157,52 @@ def run_test_3_auto():
 
     print(f"\n⏱️  {elapsed:.1f}s")
     print(f"📊 Tokens in context: {tokens:,}")
-    print(f"⚙️  Composed: {type(agent.conversation_manager).__name__} + ContextOffloader (in-memory)")
+    print(f"⚙️  context_manager='auto' → {type(agent.context_manager).__name__} "
+          "(truncate large tool results + summarize on pressure, tuned defaults)")
     return {"label": "3 — context_manager=auto", "tokens": tokens, "time": elapsed}
+
+
+def run_test_4_external_persistence():
+    """Test 4: the offloaded data is stored EXTERNALLY — recover it by reference
+    from a brand-new storage instance, i.e. from a different session/process.
+
+    This is the answer to "what happens when the session closes?". The reference
+    is only as durable as the backend behind it:
+      - InMemoryStorage → RAM, gone when the process ends
+      - LocalFileStorage → local disk, survives restart (same host)
+      - S3Storage → durable and shared across machines/sessions
+    """
+    import asyncio
+
+    print("\n" + "=" * 70)
+    print("TEST 4: EXTERNAL PERSISTENCE — recover by reference from a new session")
+    print("=" * 70)
+
+    async def _demo():
+        payload = json.dumps(
+            [{"id": i, "level": "ERROR"} for i in range(500)]
+        ).encode()
+
+        # Session A: write to a local folder and keep only the reference (the pointer)
+        store_a = LocalFileStorage(base_dir=ARTIFACT_DIR)
+        await store_a.write("logs-api-gateway", payload)
+        print("  Session A wrote 'logs-api-gateway' to disk (the durable pointer).")
+
+        # Session B: a brand-new process would only have the key string
+        store_b = LocalFileStorage(base_dir=ARTIFACT_DIR)
+        recovered = await store_b.read("logs-api-gateway")
+        events = json.loads(recovered)
+        print(f"  Session B recovered {len(events):,} events by reference — "
+              "never re-entered the context window.")
+
+    asyncio.run(_demo())
+
+    print("\n  For durability across MACHINES, swap the backend (same interface):")
+    print("      from strands.storage import S3Storage")
+    print("      storage = S3Storage('my-bucket', prefix='tool-results/')")
+    print("      agent = Agent(model=MODEL, tools=[...],")
+    print("                    plugins=[ContextOffloader(storage=storage)])")
+    return {"label": "4 — External persistence", "tokens": 0, "time": 0.0}
 
 
 # ── Comparison ───────────────────────────────────────────────────────────────
@@ -186,6 +236,9 @@ if __name__ == "__main__":
     if baseline > best["tokens"] > 0:
         reduction = (1 - best["tokens"] / baseline) * 100
         print(f"\n  → Best native strategy: {best['label']} — {reduction:.0f}% fewer tokens than baseline")
+
+    # The offloaded data lives OUTSIDE the context — show it survives the session.
+    run_test_4_external_persistence()
 
     print("\n  Manual pattern (agent.state):  test_context_overflow.py")
     print("  Native pattern (ContextOffloader):  this file")

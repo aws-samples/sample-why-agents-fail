@@ -166,20 +166,21 @@ The native Memory Pointer Pattern is `ContextOffloader`, a Strands plugin that i
 
 ```python
 from strands import Agent
-from strands.vended_plugins.context_offloader import ContextOffloader, FileStorage
+from strands.storage import LocalFileStorage, S3Storage   # Strands 1.56+
+from strands.vended_plugins.context_offloader import ContextOffloader
 from native_tools import fetch_application_logs, count_errors_by_service
 
 # Tools are ordinary functions — no agent.state, no pointer arguments
 agent = Agent(
     model=MODEL,
     tools=[fetch_application_logs, count_errors_by_service],
-    plugins=[ContextOffloader(storage=FileStorage("./artifacts"),
+    plugins=[ContextOffloader(storage=LocalFileStorage(base_dir="./artifacts"),
                               max_result_tokens=800, preview_tokens=200)],
 )
 agent("Fetch 2 hours of logs for 'api-gateway' and tell me the top error service.")
 ```
 
-The plugin registers a `retrieve_offloaded_content(reference)` tool, so the agent can pull full content back **by exact reference** when it truly needs it.
+The plugin registers a `retrieve_offloaded_content(reference)` tool, so the agent can pull full content back **by exact reference** when it truly needs it. Storage backends live in `strands.storage`: `InMemoryStorage` (RAM), `LocalFileStorage(base_dir=...)` (local disk), and `S3Storage(bucket, prefix=...)` (durable, shared) — identical `write()`/`read()` interface, so you swap one for another with a single line.
 
 ### Manual vs Native
 
@@ -189,7 +190,7 @@ The plugin registers a `retrieve_offloaded_content(reference)` tool, so the agen
 | Analysis tool | Receives `logs_pointer`, calls `agent.state.get()` | Ordinary function — no pointer logic |
 | Who offloads | You, inside every tool | The `ContextOffloader` plugin, outside the tools |
 | Retrieval | Read `agent.state` by key | `retrieve_offloaded_content(reference)` — by exact reference |
-| Storage | In-process RAM | `InMemoryStorage` or `FileStorage` (local disk) |
+| Storage | In-process RAM | `InMemoryStorage`, `LocalFileStorage` (disk), or `S3Storage` (durable/shared) |
 
 > **Offloader is the safety net; selective tools are the win.** `ContextOffloader` guarantees a large result won't flood context. But the biggest savings come from pairing it with a **selective tool** (like `count_errors_by_service`, which computes the answer server-side and returns a small summary). Without a selective tool, an agent that needs the full dataset will just call `retrieve_offloaded_content` and bring it all back.
 
@@ -201,7 +202,9 @@ For most multi-turn agents, you don't configure offloading and summarization sep
 agent = Agent(model=MODEL, tools=[...], context_manager="auto")
 ```
 
-This composes (with benchmark-validated defaults) a `SummarizingConversationManager` (summarizes old history with proactive compression) **plus** a `ContextOffloader` (in-memory). Any `conversation_manager` or `plugins` you pass take precedence.
+This creates a `ContextManager` (a first-class agent feature, not a plugin) with tuned, benchmark-validated strategies: **truncate large tool results** (offload oversized results and keep a short preview, retrievable on demand via the `retrieve_context` tool) **plus summarize on pressure** (compress the oldest messages when the window nears capacity). When `context_manager` is set, any `conversation_manager` you also pass is ignored — the `ContextManager` owns overflow recovery and proactive compression. See [Context Management](https://strandsagents.com/docs/user-guide/concepts/context-management/) and [Built-in Modes](https://strandsagents.com/docs/user-guide/concepts/context-management/built-in-modes/) (there's also an experimental `"agentic"` mode where the model manages its own context).
+
+> **Note on persistence:** `context_manager="auto"` uses an in-memory stash by default, which does not survive a process restart. For durable, cross-session recall, offload to `LocalFileStorage` or `S3Storage` (see "When the session closes" in the notebook) or configure a durable storage backend with session management.
 
 > **Measured in this demo** (same query, `gpt-4o-mini`, 2h of logs): no management ≈ 18–20K tokens in context → `ContextOffloader` ≈ 490 tokens (~97% fewer) → `context_manager="auto"` ≈ 1K tokens. Numbers vary per run because log data is randomized; re-run `test_native_pointer.py` to reproduce.
 
